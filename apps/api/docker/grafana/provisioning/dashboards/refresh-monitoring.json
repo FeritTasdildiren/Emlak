@@ -1,0 +1,351 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Refresh Status Dağılımı",
+      "description": "Area analyses ve deprem risks tablolarının refresh status dağılımı (fresh/stale/refreshing/failed)",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "fresh" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "stale" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "refreshing" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "failed" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "pieType": "pie",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "right" }
+      },
+      "targets": [
+        {
+          "expr": "refresh_status_count{table=~\"$table\"}",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "id": 2,
+      "title": "Failed Refresh Timeline",
+      "description": "Son 7 günde failed durumundaki kayıt sayısı",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 10,
+            "pointSize": 5
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "expr": "refresh_status_count{status=\"failed\"}",
+          "legendFormat": "{{table}} failed",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "id": 3,
+      "title": "Stale Records Trend",
+      "description": "Stale kayıt sayısı trendi",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "fillOpacity": 20,
+            "pointSize": 5
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single", "sort": "none" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "expr": "refresh_stale_records{table=~\"$table\"}",
+          "legendFormat": "{{table}} stale",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "id": 4,
+      "title": "Son Başarılı Refresh",
+      "description": "Her tablo için son başarılı yenileme zamanı",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          },
+          "unit": "dateTimeFromNow"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "horizontal"
+      },
+      "targets": [
+        {
+          "expr": "refresh_last_success_ts{table=~\"$table\"} * 1000",
+          "legendFormat": "{{table}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "id": 5,
+      "title": "Refresh Duration",
+      "description": "Veri yenileme süreleri (histogram)",
+      "type": "histogram",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "bucketSize": 10,
+        "combine": false,
+        "fillOpacity": 80,
+        "gradientMode": "none",
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "expr": "rate(refresh_duration_seconds_bucket{table=~\"$table\"}[1h])",
+          "legendFormat": "{{table}} {{result}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "id": 6,
+      "title": "Active Alerts",
+      "description": "Aktif alert'ler tablosu — stuck, failed, stale, no-recent-refresh",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "severity" },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  { "options": { "CRITICAL": { "color": "red", "text": "CRITICAL" } }, "type": "value" },
+                  { "options": { "ERROR": { "color": "orange", "text": "ERROR" } }, "type": "value" },
+                  { "options": { "WARNING": { "color": "yellow", "text": "WARNING" } }, "type": "value" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false }
+      },
+      "targets": [
+        {
+          "expr": "refresh_status_count{status=\"failed\"} > 0 or refresh_stale_records > 0",
+          "legendFormat": "{{table}} - {{status}}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "id": 7,
+      "title": "Manuel Retry",
+      "description": "Admin API üzerinden manuel refresh tetiklemek için linkler",
+      "type": "text",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 24 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Manuel Refresh Tetikleme\n\n| Tablo | Endpoint | Açıklama |\n|-------|----------|----------|\n| Area Analyses | `POST /admin/refresh/retry/area_analyses` | Haftalık alan analiz yenilemesini tetikle |\n| Deprem Risks | `POST /admin/refresh/retry/deprem_risks` | Aylık deprem risk yenilemesini tetikle |\n\n**Not:** JWT token (platform_admin rolü) gereklidir. `curl -X POST -H 'Authorization: Bearer <token>' <api_url>/admin/refresh/retry/area_analyses`",
+        "code": { "language": "plaintext", "showLineNumbers": false }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Toplam Failed Refresh",
+      "description": "Kümülatif başarısız yenileme sayısı",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 28 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "refresh_failed_total{table=~\"$table\"}",
+          "legendFormat": "{{table}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    },
+    {
+      "id": 9,
+      "title": "Refresh Duration Avg",
+      "description": "Ortalama yenileme süresi (son 1 saat)",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 28 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "red", "value": 180 }
+            ]
+          },
+          "unit": "s",
+          "min": 0,
+          "max": 360
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"] },
+        "showThresholdMarkers": true,
+        "showThresholdLabels": false
+      },
+      "targets": [
+        {
+          "expr": "rate(refresh_duration_seconds_sum{table=~\"$table\"}[1h]) / rate(refresh_duration_seconds_count{table=~\"$table\"}[1h])",
+          "legendFormat": "{{table}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": { "type": "prometheus", "uid": "prometheus" }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["emlak", "refresh", "monitoring", "data-pipeline"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "table",
+        "options": [
+          { "selected": false, "text": "area_analyses", "value": "area_analyses" },
+          { "selected": false, "text": "deprem_risks", "value": "deprem_risks" }
+        ],
+        "query": "area_analyses,deprem_risks",
+        "type": "custom",
+        "label": "Tablo"
+      }
+    ]
+  },
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {},
+  "timezone": "Europe/Istanbul",
+  "title": "Veri Yenileme Monitoring",
+  "uid": "refresh-monitoring",
+  "version": 1
+}

@@ -1,0 +1,11 @@
+---
+buttons:
+  - text: 'Aboneligi Yenile'
+    url: '{{ renewal_url }}'
+---
+Abonelik sureniz dolmak uzere!
+
+Plan: {{ plan_name }}
+Kalan gun: {{ days_left }}
+
+Hizmet kesintisi yasamaniz icin aboneliginizi simdiden yenileyebilirsiniz. Yenileme islemini asagidaki butondan yapabilirsiniz.

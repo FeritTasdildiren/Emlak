@@ -1,0 +1,34 @@
+# ============================================
+# Grafana Datasource Provisioning - Tempo
+# ============================================
+# Bu dosya Grafana baslatildiginda otomatik olarak
+# Tempo datasource'unu yapilandirir.
+
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    url: http://tempo:3200
+    isDefault: true
+    version: 1
+    editable: false
+    uid: tempo
+    jsonData:
+      httpMethod: GET
+      tracesToLogsV2:
+        datasourceUid: ""
+      serviceMap:
+        datasourceUid: ""
+      nodeGraph:
+        enabled: true
+      search:
+        hide: false
+      lokiSearch:
+        datasourceUid: ""
+      traceQuery:
+        timeShiftEnabled: true
+        spanStartTimeShift: "1h"
+        spanEndTimeShift: "1h"

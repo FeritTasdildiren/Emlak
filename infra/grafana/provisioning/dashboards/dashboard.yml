@@ -1,0 +1,22 @@
+# ============================================
+# Grafana Dashboard Provisioning Config
+# ============================================
+# Bu dosya Grafana baslatildiginda otomatik olarak
+# dashboard JSON dosyalarini yukler.
+#
+# Ref: https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
+
+apiVersion: 1
+
+providers:
+  - name: "emlak-dashboards"
+    orgId: 1
+    folder: "Emlak Platform"
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

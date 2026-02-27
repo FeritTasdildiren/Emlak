@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Staging - Emlak Asistanı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Before/After Slider */
+        .slider-container {
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            touch-action: none;
+        }
+        .slider-after {
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            overflow: hidden;
+        }
+        .slider-after img {
+            width: var(--slider-width);
+            max-width: none;
+            height: 100%;
+            object-fit: cover;
+        }
+        .slider-handle {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 4px;
+            background: white;
+            cursor: ew-resize;
+            z-index: 10;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+        }
+        .slider-knob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Drag&Drop highlight */
+        .drop-active {
+            border-color: #4f46e5 !important;
+            background-color: #eef2ff !important;
+        }
+        .dark .drop-active {
+            background-color: rgba(79, 70, 229, 0.1) !important;
+        }
+    </style>
+    <!--
+    ============================================================
+    TASK-117: İlan Asistanı UI Tasarım Spec'i (S8.10)
+    Tab 2: Virtual Staging
+    ============================================================
+
+    TypeScript Interface Definitions:
+
+    type StagingStyle = 'modern' | 'classic' | 'minimalist' | 'scandinavian' | 'bohemian' | 'industrial';
+
+    interface StagingStyleOption {
+        id: StagingStyle;
+        label: string;
+        description: string;
+        icon: string;  // Lucide icon name
+    }
+
+    interface UploadedPhoto {
+        id: string;
+        file: File;
+        previewUrl: string;
+        status: 'uploaded' | 'processing' | 'completed' | 'error';
+        stagedUrl?: string;
+        selectedStyle?: StagingStyle;
+    }
+
+    interface StagingQuota {
+        used: number;
+        total: number;
+        isExceeded: boolean;
+    }
+
+    interface VirtualStagingState {
+        photos: UploadedPhoto[];
+        selectedStyle: StagingStyle;
+        quota: StagingQuota;
+        isProcessing: boolean;
+        comparisonPhoto: {
+            before: string;
+            after: string;
+        } | null;
+    }
+
+    // API
+    interface StagingRequest {
+        photoId: string;
+        style: StagingStyle;
+    }
+
+    interface StagingResponse {
+        success: boolean;
+        stagedImageUrl: string;
+        creditsUsed: number;
+        creditsRemaining: number;
+        processingTimeMs: number;
+    }
+    -->
+</head>
+<body class="h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+
+    <!-- ========== HEADER ========== -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-20" role="banner">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg text-indigo-600 dark:text-indigo-400">
+                <i data-lucide="building-2" class="w-6 h-6"></i>
+            </div>
+            <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100">İlan Asistanı</h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-medium border border-emerald-100 dark:border-emerald-800">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span>342 Kredi</span>
+            </div>
+            <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors" aria-label="Bildirimler">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+            </button>
+            <div class="w-8 h-8 bg-indigo-600 rounded-full text-white flex items-center justify-center font-bold text-sm" aria-label="Kullanıcı profili">F</div>
+        </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8" role="main">
+
+        <!-- ===== TAB NAVIGATION ===== -->
+        <div class="mb-6 sm:mb-8 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
+            <nav class="flex gap-6 sm:gap-8 -mb-px min-w-max" aria-label="İlan asistanı sekmeleri" role="tablist">
+                <a href="ilan-metin-olustur.html"
+                   class="border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300 py-4 px-1 inline-flex items-center gap-2 font-medium text-sm transition-colors whitespace-nowrap"
+                   role="tab" aria-selected="false">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    Metin Oluştur
+                </a>
+                <a href="virtual-staging.html"
+                   class="border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 py-4 px-1 inline-flex items-center gap-2 font-medium text-sm whitespace-nowrap"
+                   role="tab" aria-selected="true" aria-controls="tab-staging">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    Virtual Staging
+                    <span class="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 py-0.5 px-2 rounded-full text-xs font-semibold">YENİ</span>
+                </a>
+                <a href="portal-export.html"
+                   class="border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300 py-4 px-1 inline-flex items-center gap-2 font-medium text-sm transition-colors whitespace-nowrap"
+                   role="tab" aria-selected="false">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                    Portal Export
+                </a>
+            </nav>
+        </div>
+
+        <!-- ===== 12-COL LAYOUT ===== -->
+        <div id="tab-staging" class="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start" role="tabpanel">
+
+            <!-- ========== LEFT COLUMN: CONTROLS (4 cols) ========== -->
+            <div class="lg:col-span-4 space-y-6">
+
+                <!-- 1. FOTOĞRAF YÜKLEME -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                        Fotoğraf Yükle
+                    </h3>
+
+                    <!-- Drop Zone -->
+                    <div id="drop-zone"
+                         class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 sm:p-8 text-center hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer group"
+                         role="button" tabindex="0" aria-label="Fotoğraf yüklemek için tıklayın veya sürükleyin">
+                        <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                        </div>
+                        <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Tıkla veya sürükle</p>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">JPG, PNG, WebP (Maks. 10MB)</p>
+                    </div>
+
+                    <!-- Uploaded Photos Grid -->
+                    <div class="mt-4 grid grid-cols-3 gap-2" id="photo-grid" aria-label="Yüklenen fotoğraflar">
+                        <!-- Photo 1: Completed -->
+                        <div class="relative group rounded-lg overflow-hidden aspect-square border-2 border-emerald-500 dark:border-emerald-400">
+                            <img src="https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&w=200&q=80" alt="Salon - boş" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                <button class="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-slate-800/90 text-xs font-medium px-2 py-1 rounded-md text-indigo-700 dark:text-indigo-300" aria-label="Staging uygula">
+                                    Staging Uygula
+                                </button>
+                            </div>
+                            <div class="absolute top-1 right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                                <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                            </div>
+                        </div>
+                        <!-- Photo 2: Ready -->
+                        <div class="relative group rounded-lg overflow-hidden aspect-square border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+                            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=200&q=80" alt="Yatak odası - boş" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                <button class="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-slate-800/90 text-xs font-medium px-2 py-1 rounded-md text-indigo-700 dark:text-indigo-300" aria-label="Staging uygula">
+                                    Staging Uygula
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Photo 3: Processing -->
+                        <div class="relative rounded-lg overflow-hidden aspect-square border-2 border-indigo-300 dark:border-indigo-600">
+                            <img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=200&q=80" alt="Mutfak - işleniyor" class="w-full h-full object-cover opacity-50">
+                            <div class="absolute inset-0 flex items-center justify-center bg-white/30 dark:bg-black/30">
+                                <div class="w-6 h-6 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TARZ SEÇİMİ GRID (2x3) -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                        Tarz Seç
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Mobilya tarzı seçimi">
+
+                        <!-- Modern -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="stagingStyle" value="modern" checked class="peer sr-only">
+                            <div class="p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-400 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 peer-checked:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-center">
+                                <div class="w-10 h-10 mx-auto mb-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 peer-checked:text-indigo-600">
+                                    <i data-lucide="minus" class="w-5 h-5"></i>
+                                </div>
+                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Modern</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Düz hatlar, sade</p>
+                            </div>
+                        </label>
+
+                        <!-- Klasik -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="stagingStyle" value="classic" class="peer sr-only">
+                            <div class="p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-400 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 peer-checked:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-center">
+                                <div class="w-10 h-10 mx-auto mb-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                    <i data-lucide="crown" class="w-5 h-5"></i>
+                                </div>
+                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Klasik</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Oymalı, zarif</p>
+                            </div>
+                        </label>
+
+                        <!-- Minimalist -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="stagingStyle" value="minimalist" class="peer sr-only">
+                            <div class="p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-400 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 peer-checked:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-center">
+                                <div class="w-10 h-10 mx-auto mb-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                    <i data-lucide="square" class="w-5 h-5"></i>
+                                </div>
+                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Minimalist</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Az eşya, ferah</p>
+                            </div>
+                        </label>
+
+                        <!-- Skandinav -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="stagingStyle" value="scandinavian" class="peer sr-only">
+                            <div class="p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-400 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 peer-checked:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-center">
+                                <div class="w-10 h-10 mx-auto mb-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                    <i data-lucide="tree-pine" class="w-5 h-5"></i>
+                                </div>
+                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Skandinav</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Ahşap, doğal</p>
+                            </div>
+                        </label>
+
+                        <!-- Bohem -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="stagingStyle" value="bohemian" class="peer sr-only">
+                            <div class="p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-400 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 peer-checked:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-center">
+                                <div class="w-10 h-10 mx-auto mb-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                    <i data-lucide="flower-2" class="w-5 h-5"></i>
+                                </div>
+                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Bohem</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Bitkiler, renkli</p>
+                            </div>
+                        </label>
+
+                        <!-- Endüstriyel -->
+                        <label class="cursor-pointer">
+                            <input type="radio" name="stagingStyle" value="industrial" class="peer sr-only">
+                            <div class="p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-400 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30 peer-checked:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-center">
+                                <div class="w-10 h-10 mx-auto mb-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                    <i data-lucide="wrench" class="w-5 h-5"></i>
+                                </div>
+                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Endüstriyel</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Metal, ham</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- KOTA BİLGİSİ -->
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800/50">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-indigo-900 dark:text-indigo-200">Staging Kotası</span>
+                        <span class="text-sm font-bold text-indigo-700 dark:text-indigo-300">12 / 50</span>
+                    </div>
+                    <div class="w-full bg-indigo-200 dark:bg-indigo-800 rounded-full h-2.5" role="progressbar" aria-valuenow="12" aria-valuemin="0" aria-valuemax="50" aria-label="Kota kullanımı">
+                        <div class="bg-indigo-600 dark:bg-indigo-400 h-2.5 rounded-full transition-all" style="width: 24%"></div>
+                    </div>
+                    <p class="mt-1.5 text-xs text-indigo-600 dark:text-indigo-400">Bu ay 38 staging hakkınız kaldı</p>
+                </div>
+
+                <!-- Kota Aşıldı Durumu (hidden by default) -->
+                <div id="quota-exceeded" class="hidden bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-200 dark:border-amber-800/50">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-amber-100 dark:bg-amber-800/50 rounded-full flex items-center justify-center shrink-0">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 dark:text-amber-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-amber-900 dark:text-amber-200">Kotanız doldu!</p>
+                            <p class="text-xs text-amber-700 dark:text-amber-400 mt-1">Bu ayki staging hakkınız tükendi. Ek kredi satın alarak devam edebilirsiniz.</p>
+                            <button class="mt-3 w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2" aria-label="Ek kredi satın al">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                Ek Kredi Satın Al
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DÖNÜŞTÜR BUTONU -->
+                <button id="btn-stage" type="button"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Seçili fotoğrafı dönüştür">
+                    <i data-lucide="wand-2" class="w-5 h-5"></i>
+                    Fotoğrafı Dönüştür
+                </button>
+            </div>
+
+            <!-- ========== RIGHT COLUMN: PREVIEW (8 cols) ========== -->
+            <div class="lg:col-span-8">
+
+                <!-- ===== LOADING STATE ===== -->
+                <div id="staging-loading" class="hidden bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden min-h-[520px] flex flex-col items-center justify-center p-8">
+                    <div class="relative">
+                        <div class="w-20 h-20 border-4 border-indigo-200 dark:border-indigo-800 rounded-full animate-spin border-t-indigo-600 dark:border-t-indigo-400"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i data-lucide="image" class="w-8 h-8 text-indigo-600 dark:text-indigo-400"></i>
+                        </div>
+                    </div>
+                    <p class="mt-6 text-sm font-medium text-slate-700 dark:text-slate-300">Fotoğraf işleniyor...</p>
+                    <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">AI mobilya yerleştirmesi yapılıyor</p>
+                    <div class="mt-4 w-48 bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-indigo-600 dark:bg-indigo-400 h-full rounded-full animate-pulse" style="width: 65%"></div>
+                    </div>
+                </div>
+
+                <!-- ===== RESULT STATE: Before/After Slider ===== -->
+                <div id="staging-result" class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+                    <!-- Header -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 px-5 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                        <h3 class="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2 text-sm">
+                            Önce / Sonra Karşılaştırma
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-full font-medium border border-indigo-100 dark:border-indigo-800">Modern Tarz</span>
+                            <button class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1 transition-colors" aria-label="Tam ekran">
+                                <i data-lucide="maximize" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Slider Area -->
+                    <div class="slider-container relative bg-slate-100 dark:bg-slate-800 min-h-[400px] sm:min-h-[500px]" id="slider-area" role="img" aria-label="Önce ve sonra fotoğraf karşılaştırması">
+                        <!-- Before (Base) -->
+                        <img src="https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&w=1200&q=80"
+                             alt="Orijinal boş oda"
+                             class="absolute inset-0 w-full h-full object-cover">
+                        <span class="absolute top-4 left-4 bg-black/60 text-white px-3 py-1.5 rounded-lg text-xs font-semibold z-[5] backdrop-blur-sm">
+                            <i data-lucide="eye-off" class="w-3 h-3 inline mr-1"></i> Önce (Boş)
+                        </span>
+
+                        <!-- After (Overlay) -->
+                        <div id="after-image" class="slider-after" style="width: 50%; --slider-width: 100%;">
+                            <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80"
+                                 alt="Mobilyalı staged oda"
+                                 style="width: var(--slider-width); height: 100%; object-fit: cover;">
+                            <span class="absolute top-4 right-4 bg-indigo-600/80 text-white px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-sm">
+                                <i data-lucide="sparkles" class="w-3 h-3 inline mr-1"></i> Sonra (Modern)
+                            </span>
+                        </div>
+
+                        <!-- Handle -->
+                        <div id="slider-handle" class="slider-handle" style="left: 50%;" aria-label="Karşılaştırma sürgüsü" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+                            <div class="slider-knob shadow-lg">
+                                <i data-lucide="chevrons-left-right" class="w-5 h-5 text-indigo-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <p class="text-xs text-slate-400 dark:text-slate-500">Oluşturuldu: 2 dk önce &middot; 3.4 sn</p>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <button class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium transition-colors shadow-sm text-sm" aria-label="Farklı tarz dene">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                Farklı Tarz Dene
+                            </button>
+                            <button class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors shadow-sm text-sm" aria-label="HD fotoğraf indir">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                İndir (HD)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        lucide.createIcons();
+
+        // === Before/After Slider ===
+        const sliderArea = document.getElementById('slider-area');
+        const afterImage = document.getElementById('after-image');
+        const sliderHandle = document.getElementById('slider-handle');
+        let isDragging = false;
+
+        function updateSlider(clientX) {
+            const rect = sliderArea.getBoundingClientRect();
+            let x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+            const pct = (x / rect.width) * 100;
+            afterImage.style.width = pct + '%';
+            sliderHandle.style.left = pct + '%';
+            sliderHandle.setAttribute('aria-valuenow', Math.round(pct));
+        }
+
+        sliderArea.addEventListener('mousedown', (e) => { isDragging = true; updateSlider(e.clientX); });
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', (e) => { if (isDragging) updateSlider(e.clientX); });
+
+        sliderArea.addEventListener('touchstart', (e) => { isDragging = true; updateSlider(e.touches[0].clientX); }, { passive: true });
+        window.addEventListener('touchend', () => isDragging = false);
+        window.addEventListener('touchmove', (e) => { if (isDragging) updateSlider(e.touches[0].clientX); }, { passive: true });
+
+        // Keyboard support for slider
+        sliderHandle.addEventListener('keydown', (e) => {
+            const rect = sliderArea.getBoundingClientRect();
+            const currentPct = parseFloat(afterImage.style.width) || 50;
+            let newPct = currentPct;
+            if (e.key === 'ArrowLeft') newPct = Math.max(0, currentPct - 2);
+            if (e.key === 'ArrowRight') newPct = Math.min(100, currentPct + 2);
+            afterImage.style.width = newPct + '%';
+            sliderHandle.style.left = newPct + '%';
+            sliderHandle.setAttribute('aria-valuenow', Math.round(newPct));
+        });
+
+        // === Drag & Drop Zone ===
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.add('drop-active'); });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropZone.classList.remove('drop-active'); });
+        });
+
+        // === Stage button — toggle loading/result ===
+        const btnStage = document.getElementById('btn-stage');
+        const stagingLoading = document.getElementById('staging-loading');
+        const stagingResult = document.getElementById('staging-result');
+
+        btnStage.addEventListener('click', () => {
+            stagingLoading.classList.remove('hidden');
+            stagingResult.classList.add('hidden');
+            setTimeout(() => {
+                stagingLoading.classList.add('hidden');
+                stagingResult.classList.remove('hidden');
+            }, 2500);
+        });
+
+        // === Dark Mode Toggle (press D key for demo) ===
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'd' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+                document.documentElement.classList.toggle('dark');
+            }
+        });
+    </script>
+</body>
+</html>

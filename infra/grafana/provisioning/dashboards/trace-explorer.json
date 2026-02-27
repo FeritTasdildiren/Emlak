@@ -1,0 +1,742 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "tempo",
+      "name": "Tempo",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Emlak Teknoloji Platformu - Distributed Trace Explorer. Tempo datasource uzerinden trace arama, gecikme dagilimi ve hata orani panelleri.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "Tempo Explore",
+      "tooltip": "Grafana Explore ile trace ara",
+      "type": "link",
+      "url": "/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22%7D"
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Overview Metrics",
+      "type": "row",
+      "panels": []
+    },
+    {
+      "id": 2,
+      "title": "Request Rate",
+      "description": "Saniyedeki toplam span sayisi (spans/sec)",
+      "type": "timeseries",
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ } | rate()",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "req/s",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "scheme",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Error Rate",
+      "description": "Saniyedeki hata span sayisi - threshold: >0.05 sari, >0.1 kirmizi",
+      "type": "stat",
+      "gridPos": { "h": 7, "w": 5, "x": 8, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ status = error } | rate()",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 0.05 },
+              { "color": "red", "value": 0.1 }
+            ]
+          },
+          "mappings": [
+            {
+              "options": { "match": "null", "result": { "text": "0", "color": "green" } },
+              "type": "special"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 4,
+      "title": "Avg Latency",
+      "description": "Ortalama span suresi",
+      "type": "stat",
+      "gridPos": { "h": 7, "w": 5, "x": 13, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ } | avg_over_time(duration)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "ns",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 500000000 },
+              { "color": "red", "value": 2000000000 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 5,
+      "title": "P95 Latency",
+      "description": "95. yuzdelik dilim gecikme",
+      "type": "stat",
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ } | quantile_over_time(duration, 0.95)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "ns",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 1000000000 },
+              { "color": "red", "value": 5000000000 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
+      "id": 6,
+      "title": "Trace Explorer",
+      "type": "row",
+      "panels": []
+    },
+    {
+      "id": 7,
+      "title": "Trace Search",
+      "description": "TraceQL ile trace arama - service.name, http.method, http.status_code, http.route filtreleri",
+      "type": "table",
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 9 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceqlSearch",
+          "limit": 50,
+          "tableType": "traces",
+          "filters": [
+            {
+              "id": "service-name",
+              "type": "static",
+              "tag": "service.name",
+              "scope": "resource",
+              "operator": "=",
+              "value": [],
+              "valueType": "string"
+            },
+            {
+              "id": "http-method",
+              "type": "static",
+              "tag": "http.method",
+              "scope": "span",
+              "operator": "=",
+              "value": [],
+              "valueType": "string"
+            },
+            {
+              "id": "http-status-code",
+              "type": "static",
+              "tag": "http.status_code",
+              "scope": "span",
+              "operator": "=",
+              "value": [],
+              "valueType": "int"
+            },
+            {
+              "id": "http-route",
+              "type": "static",
+              "tag": "http.route",
+              "scope": "span",
+              "operator": "=",
+              "value": [],
+              "valueType": "string"
+            }
+          ],
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Trace ID" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Trace detayini ac",
+                    "url": "/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22queryType%22:%22traceql%22,%22query%22:%22${__value.raw}%22%7D%5D%7D",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Duration" },
+            "properties": [
+              { "id": "unit", "value": "ns" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": true,
+          "enablePagination": true,
+          "show": true
+        },
+        "sortBy": [
+          { "desc": true, "displayName": "Start time" }
+        ]
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 8,
+      "title": "Latency Analysis",
+      "type": "row",
+      "panels": []
+    },
+    {
+      "id": 9,
+      "title": "Service Latency Distribution",
+      "description": "Servis bazli gecikme dagilimi (histogram)",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 24 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ } | histogram_over_time(duration)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "right"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Top Slow Endpoints",
+      "description": "En yavas endpoint'ler - ortalama gecikmeye gore siralanmis",
+      "type": "table",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 24 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ kind = server } | avg_over_time(duration) by (resource.service.name, http.route)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": true
+          },
+          "unit": "ns",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "#EAB839", "value": 500000000 },
+              { "color": "red", "value": 2000000000 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "resource.service.name" },
+            "properties": [
+              { "id": "displayName", "value": "Service" },
+              { "id": "custom.width", "value": 180 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "http.route" },
+            "properties": [
+              { "id": "displayName", "value": "Endpoint" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value" },
+            "properties": [
+              { "id": "displayName", "value": "Avg Latency" },
+              { "id": "unit", "value": "ns" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false },
+        "sortBy": [
+          { "desc": true, "displayName": "Avg Latency" }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": ["lastNotNull"]
+          }
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
+      "id": 11,
+      "title": "Async Processing",
+      "type": "row",
+      "panels": []
+    },
+    {
+      "id": 12,
+      "title": "Outbox Processing Time",
+      "description": "Outbox pattern ile gonderilen event'lerin isleme suresi",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 34 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ name =~ \".*outbox.*\" } | avg_over_time(duration)",
+          "refId": "avg"
+        },
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ name =~ \".*outbox.*\" } | quantile_over_time(duration, 0.95)",
+          "refId": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "duration",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "scheme",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "ns",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 13,
+      "title": "Celery Task Duration",
+      "description": "Celery worker task calisma sureleri",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 34 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name =~ \".*celery.*\" } | avg_over_time(duration) by (name)",
+          "refId": "avg"
+        },
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name =~ \".*celery.*\" } | quantile_over_time(duration, 0.95) by (name)",
+          "refId": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "duration",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "scheme",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "ns",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 42 },
+      "id": 14,
+      "title": "Recent Errors",
+      "type": "row",
+      "panels": []
+    },
+    {
+      "id": 15,
+      "title": "Recent Errors",
+      "description": "Son hata trace'leri - trace_id, service, error bilgisi",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 43 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ status = error }",
+          "limit": 30,
+          "tableType": "spans",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Trace ID" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Trace detayini Explore'da ac",
+                    "url": "/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22queryType%22:%22traceql%22,%22query%22:%22${__value.raw}%22%7D%5D%7D",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              { "id": "custom.width", "value": 220 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Span ID" },
+            "properties": [
+              { "id": "custom.hidden", "value": true }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Duration" },
+            "properties": [
+              { "id": "unit", "value": "ns" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Service Name" },
+            "properties": [
+              { "id": "custom.width", "value": 160 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": true,
+          "enablePagination": true,
+          "show": true
+        },
+        "sortBy": [
+          { "desc": true, "displayName": "Start time" }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["tempo", "traces", "emlak", "observability"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d"]
+  },
+  "timezone": "browser",
+  "title": "Trace Explorer",
+  "uid": "trace-explorer",
+  "version": 0,
+  "weekStart": ""
+}

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Export - Emlak Asistanı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Toast animation */
+        @keyframes toast-in {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes toast-out {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+        .toast-enter { animation: toast-in 0.3s ease-out forwards; }
+        .toast-exit { animation: toast-out 0.3s ease-in forwards; }
+    </style>
+    <!--
+    ============================================================
+    TASK-117: İlan Asistanı UI Tasarım Spec'i (S8.10)
+    Tab 3: Portal Export
+    ============================================================
+
+    TypeScript Interface Definitions:
+
+    type PortalTarget = 'sahibinden' | 'hepsiemlak' | 'both';
+
+    interface PortalFormatRules {
+        portal: PortalTarget;
+        maxTitleLength: number;
+        maxDescriptionLength: number;
+        format: 'xml' | 'json' | 'text';
+        requiredFields: string[];
+        photoLimit: number;
+    }
+
+    interface ExportPreview {
+        portal: PortalTarget;
+        formattedContent: string;
+        format: 'xml' | 'json';
+        validationErrors: string[];
+        characterCount: {
+            title: number;
+            description: number;
+        };
+    }
+
+    interface PortalExportState {
+        selectedPortal: PortalTarget;
+        preview: ExportPreview | null;
+        isExporting: boolean;
+        exportResult: {
+            success: boolean;
+            message: string;
+            portal: string;
+        } | null;
+        listingId: string;
+        titleFormat: 'standart' | 'dikkat_cekici';
+        includeWatermark: boolean;
+    }
+
+    // API
+    interface ExportRequest {
+        listingId: string;
+        portal: PortalTarget;
+        titleFormat: string;
+        includeWatermark: boolean;
+    }
+
+    interface ExportResponse {
+        success: boolean;
+        downloadUrl: string;
+        format: 'xml' | 'json';
+        portal: string;
+        fileSize: number;
+    }
+    -->
+</head>
+<body class="h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+
+    <!-- ========== HEADER ========== -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-20" role="banner">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg text-indigo-600 dark:text-indigo-400">
+                <i data-lucide="building-2" class="w-6 h-6"></i>
+            </div>
+            <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100">İlan Asistanı</h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-medium border border-emerald-100 dark:border-emerald-800">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span>342 Kredi</span>
+            </div>
+            <button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors" aria-label="Bildirimler">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+            </button>
+            <div class="w-8 h-8 bg-indigo-600 rounded-full text-white flex items-center justify-center font-bold text-sm" aria-label="Kullanıcı profili">F</div>
+        </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8" role="main">
+
+        <!-- ===== TAB NAVIGATION ===== -->
+        <div class="mb-6 sm:mb-8 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
+            <nav class="flex gap-6 sm:gap-8 -mb-px min-w-max" aria-label="İlan asistanı sekmeleri" role="tablist">
+                <a href="ilan-metin-olustur.html"
+                   class="border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300 py-4 px-1 inline-flex items-center gap-2 font-medium text-sm transition-colors whitespace-nowrap"
+                   role="tab" aria-selected="false">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    Metin Oluştur
+                </a>
+                <a href="virtual-staging.html"
+                   class="border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300 py-4 px-1 inline-flex items-center gap-2 font-medium text-sm transition-colors whitespace-nowrap"
+                   role="tab" aria-selected="false">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    Virtual Staging
+                    <span class="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 py-0.5 px-2 rounded-full text-xs font-semibold">YENİ</span>
+                </a>
+                <a href="portal-export.html"
+                   class="border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 py-4 px-1 inline-flex items-center gap-2 font-medium text-sm whitespace-nowrap"
+                   role="tab" aria-selected="true" aria-controls="tab-export">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                    Portal Export
+                </a>
+            </nav>
+        </div>
+
+        <!-- ===== 12-COL LAYOUT ===== -->
+        <div id="tab-export" class="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start" role="tabpanel">
+
+            <!-- ========== LEFT COLUMN: SETTINGS (4 cols) ========== -->
+            <div class="lg:col-span-4 space-y-6">
+
+                <!-- PORTAL SEÇİMİ -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                        Portal Seçimi
+                    </h3>
+                    <fieldset>
+                        <legend class="sr-only">Export yapılacak portal</legend>
+                        <div class="space-y-3" role="radiogroup" aria-label="Portal seçimi">
+                            <!-- Sahibinden.com -->
+                            <label class="flex items-center p-3 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all group has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-900/20 dark:has-[:checked]:border-indigo-500">
+                                <input type="radio" name="portal" value="sahibinden" checked class="h-4 w-4 text-indigo-600 border-slate-300 dark:border-slate-600 focus:ring-indigo-500">
+                                <div class="ml-3 flex-1">
+                                    <span class="font-medium text-slate-700 dark:text-slate-300 text-sm">Sahibinden.com</span>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">XML formatı &middot; Maks. 100 karakter başlık</p>
+                                </div>
+                                <span class="text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded">XML</span>
+                            </label>
+
+                            <!-- Hepsiemlak -->
+                            <label class="flex items-center p-3 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all group has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-900/20 dark:has-[:checked]:border-indigo-500">
+                                <input type="radio" name="portal" value="hepsiemlak" class="h-4 w-4 text-indigo-600 border-slate-300 dark:border-slate-600 focus:ring-indigo-500">
+                                <div class="ml-3 flex-1">
+                                    <span class="font-medium text-slate-700 dark:text-slate-300 text-sm">Hepsiemlak</span>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">JSON formatı &middot; Maks. 120 karakter başlık</p>
+                                </div>
+                                <span class="text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded">JSON</span>
+                            </label>
+
+                            <!-- Her İkisi -->
+                            <label class="flex items-center p-3 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all group has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50 dark:has-[:checked]:bg-indigo-900/20 dark:has-[:checked]:border-indigo-500">
+                                <input type="radio" name="portal" value="both" class="h-4 w-4 text-indigo-600 border-slate-300 dark:border-slate-600 focus:ring-indigo-500">
+                                <div class="ml-3 flex-1">
+                                    <span class="font-medium text-slate-700 dark:text-slate-300 text-sm">Her İkisi</span>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">İki portal için ayrı ayrı dosya üretilir</p>
+                                </div>
+                                <span class="text-xs font-mono bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded">2x</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- FORMAT AYARLARI -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                        Format Ayarları
+                    </h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="titleFormat" class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">Başlık Formatı</label>
+                            <select id="titleFormat" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm py-2.5 px-3" aria-label="Başlık format seçimi">
+                                <option>Standart (Satılık 2+1 Daire - Kadıköy)</option>
+                                <option>Dikkat Çekici (FIRSAT! Kadıköy'de 2+1 Daire)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="watermark" class="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 h-4 w-4">
+                            <label for="watermark" class="text-sm text-slate-700 dark:text-slate-300">Fotoğraflara filigran ekle</label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="includeStaged" checked class="rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 h-4 w-4">
+                            <label for="includeStaged" class="text-sm text-slate-700 dark:text-slate-300">Staged fotoğrafları dahil et</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOĞRULAMA DURUMU -->
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 border border-emerald-100 dark:border-emerald-800/50">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-800/50 rounded-full flex items-center justify-center shrink-0">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-emerald-900 dark:text-emerald-200">Format doğrulaması geçti</p>
+                            <ul class="mt-1.5 space-y-1 text-xs text-emerald-700 dark:text-emerald-400">
+                                <li class="flex items-center gap-1.5">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Başlık uzunluğu uygun (62/100)
+                                </li>
+                                <li class="flex items-center gap-1.5">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Zorunlu alanlar dolu
+                                </li>
+                                <li class="flex items-center gap-1.5">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Fotoğraf sayısı uygun (3/20)
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hata durumu (hidden by default) -->
+                <div id="validation-error" class="hidden bg-red-50 dark:bg-red-900/20 rounded-xl p-4 border border-red-100 dark:border-red-800/50">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 bg-red-100 dark:bg-red-800/50 rounded-full flex items-center justify-center shrink-0">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 dark:text-red-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-red-900 dark:text-red-200">Format hatası bulundu</p>
+                            <ul class="mt-1.5 space-y-1 text-xs text-red-700 dark:text-red-400">
+                                <li class="flex items-center gap-1.5">
+                                    <i data-lucide="x" class="w-3 h-3"></i> Başlık çok uzun (115/100 karakter)
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ÖNİZLEMEYİ GÜNCELLE -->
+                <button id="btn-export" type="button"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900 transition-colors flex items-center justify-center gap-2"
+                    aria-label="Önizlemeyi güncelle">
+                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                    Önizlemeyi Güncelle
+                </button>
+            </div>
+
+            <!-- ========== RIGHT COLUMN: PREVIEW (8 cols) ========== -->
+            <div class="lg:col-span-8">
+                <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+
+                    <!-- Preview Header with portal tabs -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 px-5 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <h3 class="font-semibold text-slate-800 dark:text-slate-200 text-sm">Export Önizleme</h3>
+                            <!-- Portal sub-tabs -->
+                            <div class="flex bg-slate-200 dark:bg-slate-700 rounded-md p-0.5">
+                                <button class="portal-tab px-3 py-1 text-xs font-medium rounded bg-white dark:bg-slate-600 text-slate-900 dark:text-slate-100 shadow-sm" data-portal="sahibinden">Sahibinden</button>
+                                <button class="portal-tab px-3 py-1 text-xs font-medium rounded text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300" data-portal="hepsiemlak">Hepsiemlak</button>
+                            </div>
+                        </div>
+                        <span class="text-xs font-mono bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-1 rounded">UTF-8</span>
+                    </div>
+
+                    <!-- Code Preview: Sahibinden XML -->
+                    <div id="preview-sahibinden" class="relative flex-1 bg-slate-900 dark:bg-slate-950 p-4 sm:p-6 overflow-auto min-h-[400px] sm:min-h-[480px]">
+<pre class="text-xs sm:text-sm font-mono text-emerald-400 leading-relaxed whitespace-pre-wrap"><code><span class="text-slate-500">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="text-indigo-400">&lt;Ilanlar&gt;</span>
+  <span class="text-indigo-400">&lt;Ilan&gt;</span>
+    <span class="text-amber-400">&lt;Baslik&gt;</span><span class="text-emerald-300">Kadıköy Moda'da, Deniz Manzaralı 2+1 Fırsat Daire</span><span class="text-amber-400">&lt;/Baslik&gt;</span>
+    <span class="text-amber-400">&lt;Aciklama&gt;</span>
+      <span class="text-emerald-300">İstanbul'un kalbi Moda'da...</span>
+      <span class="text-emerald-300">- 120m² Brüt</span>
+      <span class="text-emerald-300">- 3. Kat, Asansörlü</span>
+      <span class="text-emerald-300">- Deniz Manzaralı Geniş Balkon</span>
+      <span class="text-emerald-300">- Metro ve Toplu Taşıma Yakını</span>
+      <span class="text-emerald-300">- Merkezi Isıtma Sistemi</span>
+    <span class="text-amber-400">&lt;/Aciklama&gt;</span>
+    <span class="text-amber-400">&lt;Fiyat&gt;</span><span class="text-cyan-300">15000000</span><span class="text-amber-400">&lt;/Fiyat&gt;</span>
+    <span class="text-amber-400">&lt;ParaBirimi&gt;</span><span class="text-emerald-300">TL</span><span class="text-amber-400">&lt;/ParaBirimi&gt;</span>
+    <span class="text-amber-400">&lt;Kategori&gt;</span><span class="text-emerald-300">Konut</span><span class="text-amber-400">&lt;/Kategori&gt;</span>
+    <span class="text-amber-400">&lt;EmlakTipi&gt;</span><span class="text-emerald-300">Satılık Daire</span><span class="text-amber-400">&lt;/EmlakTipi&gt;</span>
+    <span class="text-amber-400">&lt;Metrekare&gt;</span><span class="text-cyan-300">120</span><span class="text-amber-400">&lt;/Metrekare&gt;</span>
+    <span class="text-amber-400">&lt;OdaSayisi&gt;</span><span class="text-emerald-300">2+1</span><span class="text-amber-400">&lt;/OdaSayisi&gt;</span>
+    <span class="text-amber-400">&lt;BinaYasi&gt;</span><span class="text-cyan-300">5</span><span class="text-amber-400">&lt;/BinaYasi&gt;</span>
+    <span class="text-amber-400">&lt;BulunduguKat&gt;</span><span class="text-cyan-300">3</span><span class="text-amber-400">&lt;/BulunduguKat&gt;</span>
+    <span class="text-amber-400">&lt;Isitma&gt;</span><span class="text-emerald-300">Merkezi</span><span class="text-amber-400">&lt;/Isitma&gt;</span>
+    <span class="text-amber-400">&lt;Balkon&gt;</span><span class="text-emerald-300">Var</span><span class="text-amber-400">&lt;/Balkon&gt;</span>
+    <span class="text-amber-400">&lt;Adres&gt;</span>
+      <span class="text-amber-400">&lt;Il&gt;</span><span class="text-emerald-300">İstanbul</span><span class="text-amber-400">&lt;/Il&gt;</span>
+      <span class="text-amber-400">&lt;Ilce&gt;</span><span class="text-emerald-300">Kadıköy</span><span class="text-amber-400">&lt;/Ilce&gt;</span>
+      <span class="text-amber-400">&lt;Mahalle&gt;</span><span class="text-emerald-300">Caferağa</span><span class="text-amber-400">&lt;/Mahalle&gt;</span>
+    <span class="text-amber-400">&lt;/Adres&gt;</span>
+    <span class="text-amber-400">&lt;Fotograflar&gt;</span>
+      <span class="text-amber-400">&lt;Foto&gt;</span><span class="text-sky-300">salon_staged_modern.jpg</span><span class="text-amber-400">&lt;/Foto&gt;</span>
+      <span class="text-amber-400">&lt;Foto&gt;</span><span class="text-sky-300">yatak_odasi.jpg</span><span class="text-amber-400">&lt;/Foto&gt;</span>
+      <span class="text-amber-400">&lt;Foto&gt;</span><span class="text-sky-300">mutfak.jpg</span><span class="text-amber-400">&lt;/Foto&gt;</span>
+    <span class="text-amber-400">&lt;/Fotograflar&gt;</span>
+  <span class="text-indigo-400">&lt;/Ilan&gt;</span>
+<span class="text-indigo-400">&lt;/Ilanlar&gt;</span></code></pre>
+                    </div>
+
+                    <!-- Code Preview: Hepsiemlak JSON (hidden by default) -->
+                    <div id="preview-hepsiemlak" class="hidden relative flex-1 bg-slate-900 dark:bg-slate-950 p-4 sm:p-6 overflow-auto min-h-[400px] sm:min-h-[480px]">
+<pre class="text-xs sm:text-sm font-mono text-emerald-400 leading-relaxed whitespace-pre-wrap"><code>{
+  <span class="text-amber-400">"ilan"</span>: {
+    <span class="text-amber-400">"baslik"</span>: <span class="text-emerald-300">"Kadıköy Moda'da, Deniz Manzaralı 2+1 Fırsat Daire"</span>,
+    <span class="text-amber-400">"aciklama"</span>: <span class="text-emerald-300">"İstanbul'un kalbi Moda'da..."</span>,
+    <span class="text-amber-400">"fiyat"</span>: <span class="text-cyan-300">15000000</span>,
+    <span class="text-amber-400">"paraBirimi"</span>: <span class="text-emerald-300">"TRY"</span>,
+    <span class="text-amber-400">"kategori"</span>: <span class="text-emerald-300">"konut"</span>,
+    <span class="text-amber-400">"emlakTipi"</span>: <span class="text-emerald-300">"satilik-daire"</span>,
+    <span class="text-amber-400">"ozellikler"</span>: {
+      <span class="text-amber-400">"metrekare"</span>: <span class="text-cyan-300">120</span>,
+      <span class="text-amber-400">"odaSayisi"</span>: <span class="text-emerald-300">"2+1"</span>,
+      <span class="text-amber-400">"binaYasi"</span>: <span class="text-cyan-300">5</span>,
+      <span class="text-amber-400">"bulunduguKat"</span>: <span class="text-cyan-300">3</span>,
+      <span class="text-amber-400">"isitma"</span>: <span class="text-emerald-300">"merkezi"</span>,
+      <span class="text-amber-400">"balkon"</span>: <span class="text-cyan-300">true</span>
+    },
+    <span class="text-amber-400">"konum"</span>: {
+      <span class="text-amber-400">"il"</span>: <span class="text-emerald-300">"istanbul"</span>,
+      <span class="text-amber-400">"ilce"</span>: <span class="text-emerald-300">"kadikoy"</span>,
+      <span class="text-amber-400">"mahalle"</span>: <span class="text-emerald-300">"caferaga"</span>
+    },
+    <span class="text-amber-400">"fotograflar"</span>: [
+      <span class="text-sky-300">"salon_staged_modern.jpg"</span>,
+      <span class="text-sky-300">"yatak_odasi.jpg"</span>,
+      <span class="text-sky-300">"mutfak.jpg"</span>
+    ]
+  }
+}</code></pre>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <div class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-3">
+                            <span>1 ilan</span>
+                            <span class="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full"></span>
+                            <span id="portal-count-label">Sahibinden.com seçili</span>
+                        </div>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <button id="btn-copy" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 font-medium transition-colors shadow-sm text-sm" aria-label="Kodu kopyala">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                                Kodu Kopyala
+                            </button>
+                            <button id="btn-download" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors shadow-sm text-sm" aria-label="XML dosya indir">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span id="download-label">XML İndir</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== TOAST CONTAINER ========== -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script>
+        lucide.createIcons();
+
+        // === Toast System ===
+        function showToast(type, message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const configs = {
+                success: { bg: 'bg-emerald-600', icon: 'check-circle' },
+                error:   { bg: 'bg-red-600',     icon: 'alert-circle' },
+                info:    { bg: 'bg-indigo-600',   icon: 'info' },
+            };
+            const cfg = configs[type] || configs.info;
+
+            toast.className = `toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 ${cfg.bg} text-white rounded-lg shadow-lg max-w-sm text-sm font-medium`;
+            toast.innerHTML = `<i data-lucide="${cfg.icon}" class="w-5 h-5 shrink-0"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons({ nodes: [toast] });
+
+            setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // === Portal Sub-tab Switching ===
+        const portalTabs = document.querySelectorAll('.portal-tab');
+        const previewSahibinden = document.getElementById('preview-sahibinden');
+        const previewHepsiemlak = document.getElementById('preview-hepsiemlak');
+        const downloadLabel = document.getElementById('download-label');
+        const portalCountLabel = document.getElementById('portal-count-label');
+
+        portalTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                portalTabs.forEach(t => {
+                    t.classList.remove('bg-white', 'dark:bg-slate-600', 'text-slate-900', 'dark:text-slate-100', 'shadow-sm');
+                    t.classList.add('text-slate-500', 'dark:text-slate-400');
+                });
+                tab.classList.add('bg-white', 'dark:bg-slate-600', 'text-slate-900', 'dark:text-slate-100', 'shadow-sm');
+                tab.classList.remove('text-slate-500', 'dark:text-slate-400');
+
+                if (tab.dataset.portal === 'sahibinden') {
+                    previewSahibinden.classList.remove('hidden');
+                    previewHepsiemlak.classList.add('hidden');
+                    downloadLabel.textContent = 'XML İndir';
+                    portalCountLabel.textContent = 'Sahibinden.com seçili';
+                } else {
+                    previewSahibinden.classList.add('hidden');
+                    previewHepsiemlak.classList.remove('hidden');
+                    downloadLabel.textContent = 'JSON İndir';
+                    portalCountLabel.textContent = 'Hepsiemlak seçili';
+                }
+            });
+        });
+
+        // === Portal radio changes ===
+        document.querySelectorAll('input[name="portal"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (radio.value === 'hepsiemlak') {
+                    portalTabs[1].click();
+                } else {
+                    portalTabs[0].click();
+                }
+            });
+        });
+
+        // === Copy Button ===
+        document.getElementById('btn-copy').addEventListener('click', () => {
+            showToast('success', 'Kod panoya kopyalandı!');
+        });
+
+        // === Download Button ===
+        document.getElementById('btn-download').addEventListener('click', () => {
+            showToast('success', 'Dosya indiriliyor...');
+        });
+
+        // === Export Button ===
+        document.getElementById('btn-export').addEventListener('click', () => {
+            showToast('info', 'Önizleme güncellendi');
+        });
+
+        // === Dark Mode Toggle (press D key for demo) ===
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'd' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+                document.documentElement.classList.toggle('dark');
+            }
+        });
+
+        // === Demo: Show error toast (press E key) ===
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'e' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+                showToast('error', 'Export sırasında bir hata oluştu. Lütfen tekrar deneyin.');
+            }
+        });
+    </script>
+</body>
+</html>

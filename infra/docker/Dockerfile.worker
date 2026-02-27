@@ -1,0 +1,65 @@
+# ============================================
+# Emlak Worker - Production Dockerfile (Placeholder)
+# Celery worker for background tasks
+# ============================================
+
+# ---------- Stage 1: Build ----------
+FROM python:3.12-slim AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    libffi-dev \
+    libcairo2-dev \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY apps/api/pyproject.toml ./
+RUN uv sync --frozen --no-dev --no-install-project 2>/dev/null || uv sync --no-dev --no-install-project
+
+COPY apps/api/ .
+
+# ---------- Stage 2: Runtime ----------
+FROM python:3.12-slim AS runtime
+
+RUN groupadd --gid 1000 appuser && \
+    useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    tini \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    libcairo2 \
+    libglib2.0-0 \
+    fonts-noto-core \
+    fonts-noto-extra \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
+COPY --from=builder --chown=appuser:appuser /app/src /app/src
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+USER appuser
+
+ENTRYPOINT ["tini", "--"]
+
+# Celery worker with concurrency and queue configuration
+CMD ["celery", "-A", "src.tasks", "worker", "--loglevel=info", "--concurrency=4", "-Q", "default,notifications,ml"]

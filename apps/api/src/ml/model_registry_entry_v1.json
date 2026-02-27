@@ -1,0 +1,81 @@
+{
+  "id": "a3b7c2d1-8e4f-4a9b-b6c3-1d2e3f4a5b6c",
+  "model_name": "lgbm_konut_fiyat",
+  "version": "v1",
+  "artifact_url": "ml/models/v1/",
+  "metrics": {
+    "rmse": 1172139.61,
+    "mae": 576804.74,
+    "median_ae": 320568.34,
+    "r2": 0.9424,
+    "mape": 0.0935,
+    "cv_mape": 0.3726,
+    "cv_std": 0.1999,
+    "test_size": 750,
+    "train_size": 2999
+  },
+  "confidence_interval": {
+    "coverage": 0.576,
+    "target_coverage": 0.80,
+    "avg_interval_width": 1598664.24,
+    "median_interval_pct": 0.2156,
+    "confidence_level": 0.80,
+    "quantile_models": [
+      "lgbm_quantile_q10.joblib",
+      "lgbm_quantile_q90.joblib"
+    ]
+  },
+  "hyperparameters": {
+    "num_leaves": 60,
+    "learning_rate": 0.0335,
+    "n_estimators": 500,
+    "min_child_samples": 12,
+    "subsample": 0.814,
+    "colsample_bytree": 0.649,
+    "reg_alpha": 0.015,
+    "reg_lambda": 0.029,
+    "tuning_method": "optuna",
+    "n_trials": 10,
+    "n_folds": 3,
+    "best_iteration": 384
+  },
+  "top_10_features": {
+    "net_sqm": 2525,
+    "gross_sqm": 2519,
+    "lon": 2234,
+    "building_age": 2033,
+    "rooms_per_sqm": 1578,
+    "lat": 1554,
+    "sqm_ratio": 1544,
+    "district": 1272,
+    "neighborhood": 1156,
+    "transport_score": 918
+  },
+  "artifacts": [
+    "lgbm_model.joblib",
+    "lgbm_quantile_q10.joblib",
+    "lgbm_quantile_q90.joblib",
+    "feature_engineer.joblib",
+    "training_results.json",
+    "tuning_results.json"
+  ],
+  "training_data_size": 3749,
+  "feature_count": 24,
+  "training_time_seconds": 119.9,
+  "previous_version": "v0",
+  "improvements_over_previous": {
+    "mape_delta": -0.0059,
+    "r2_delta": 0.0149,
+    "rmse_delta": -142892.76,
+    "mae_delta": -42722.07
+  },
+  "known_limitations": [
+    "Quantile coverage 57.6% (hedef 80% karsilanmadi)",
+    "CV MAPE 37.3% (fold-arasi varyans yuksek)",
+    "Sadece Istanbul verisi ile egitildi",
+    "Sentetik egitim verisi (gercek ilan degil)"
+  ],
+  "status": "active",
+  "created_at": "2026-02-21T19:15:00.000000+00:00",
+  "updated_at": "2026-02-21T19:15:00.000000+00:00"
+}

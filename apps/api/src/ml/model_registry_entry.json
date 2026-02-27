@@ -1,0 +1,21 @@
+{
+  "id": "9fef4809-fe2c-451e-ac01-70342992e281",
+  "model_name": "lgbm_konut_fiyat",
+  "version": "v0",
+  "artifact_url": "ml/models/v0/",
+  "metrics": {
+    "rmse": 1315032.37,
+    "mae": 619526.81,
+    "r2": 0.9275,
+    "mape": 0.0994,
+    "median_ae": 316701.72,
+    "test_size": 750,
+    "train_size": 2999
+  },
+  "training_data_size": 3749,
+  "feature_count": 24,
+  "status": "superseded",
+  "superseded_by": "v1",
+  "created_at": "2026-02-21T10:20:20.846454+00:00",
+  "updated_at": "2026-02-21T10:20:20.846596+00:00"
+}

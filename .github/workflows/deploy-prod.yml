@@ -1,0 +1,528 @@
+# ============================================
+# Emlak Teknoloji Platformu - Production Deploy
+# Trigger: Tag push (v*) veya manual dispatch
+# Target: 157.173.116.230 (PM2 managed)
+# Approval: GitHub Environment protection rules
+# ============================================
+
+name: Deploy Production
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Deploy edilecek tag (ör: v1.2.3)"
+        required: true
+        type: string
+      rollback:
+        description: "Rollback modu (önceki release'e dön)"
+        required: false
+        default: "false"
+        type: boolean
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false  # Production deploy ASLA iptal edilmemeli
+
+env:
+  SERVER_HOST: 157.173.116.230
+  DEPLOY_PATH: /var/www/uniqmys
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
+
+jobs:
+  # ---------- Rollback (shortcut) ----------
+  rollback:
+    if: github.event.inputs.rollback == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://uniqmys.com
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Rollback to previous release
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << 'EOSSH'
+            set -e
+            RELEASES_DIR="${{ env.DEPLOY_PATH }}/releases"
+            CURRENT_RELEASE=$(readlink -f ${{ env.DEPLOY_PATH }}/current)
+            CURRENT_NAME=$(basename "$CURRENT_RELEASE")
+
+            echo "Current release: $CURRENT_NAME"
+
+            # Find previous release
+            PREVIOUS=$(ls -dt "$RELEASES_DIR"/*/ | grep -v "$CURRENT_NAME" | head -1)
+
+            if [ -z "$PREVIOUS" ]; then
+              echo "✗ No previous release found for rollback"
+              exit 1
+            fi
+
+            PREV_NAME=$(basename "$PREVIOUS")
+            echo "Rolling back to: $PREV_NAME"
+
+            # Atomic symlink switch
+            ln -sfn "$PREVIOUS" "${{ env.DEPLOY_PATH }}/current"
+
+            # Restart services
+            cd "${{ env.DEPLOY_PATH }}/current"
+            pm2 reload ecosystem.config.js --update-env 2>/dev/null || pm2 restart all
+
+            # Health check
+            sleep 5
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health)
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Rollback successful: $CURRENT_NAME → $PREV_NAME"
+            else
+              echo "⚠ Rollback done but health check returned HTTP $HTTP_CODE"
+              exit 1
+            fi
+          EOSSH
+
+  # ---------- Validate Tag ----------
+  validate:
+    if: github.event.inputs.rollback != 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version tag
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "📦 Deploying version: $TAG"
+
+      - name: Validate tag format
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+            echo "✗ Invalid tag format: $TAG"
+            echo "  Expected: v1.2.3 or v1.2.3-beta.1"
+            exit 1
+          fi
+          echo "✓ Tag format valid: $TAG"
+
+  # ---------- CI Gate: Full Test Suite ----------
+  ci-gate:
+    needs: [validate]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: emlak_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U test_user -d emlak_test"
+          --health-interval 10s --health-timeout 5s
+          --health-retries 5 --health-start-period 30s
+      redis:
+        image: redis:7.2-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: emlak_test
+      DB_USER: test_user
+      DB_PASSWORD: test_pass
+      REDIS_URL: redis://localhost:6379/0
+      APP_ENV: testing
+      APP_DEBUG: false
+      JWT_SECRET_KEY: test-secret-key-for-ci-only-32chars
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install WeasyPrint system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 \
+            libpangocairo-1.0-0 \
+            libgdk-pixbuf-2.0-0 \
+            libcairo2 \
+            libglib2.0-0 \
+            libffi-dev \
+            fonts-noto-core \
+            fonts-noto-extra
+
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: uv sync --dev
+
+      - name: Full test suite
+        working-directory: apps/api
+        run: uv run pytest -v --tb=short
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Web lint + type check
+        working-directory: apps/web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run lint
+          pnpm exec tsc --noEmit
+
+  # ---------- Build API ----------
+  build-api:
+    needs: [ci-gate, validate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install production dependencies
+        working-directory: apps/api
+        run: uv sync --no-dev
+
+      - name: Package API artifact
+        run: |
+          tar czf api-artifact.tar.gz \
+            apps/api/src/ \
+            apps/api/pyproject.toml \
+            apps/api/uv.lock \
+            apps/api/alembic.ini \
+            apps/api/alembic/ \
+            --exclude='apps/api/src/ml/models/*/lgbm_model.joblib' \
+            --exclude='__pycache__' \
+            --exclude='.pytest_cache' \
+            2>/dev/null || \
+          tar czf api-artifact.tar.gz \
+            apps/api/src/ \
+            apps/api/pyproject.toml \
+            apps/api/uv.lock \
+            --exclude='__pycache__' \
+            --exclude='.pytest_cache'
+
+      - name: Upload API artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-build-prod
+          path: api-artifact.tar.gz
+          retention-days: 30
+
+  # ---------- Build Web ----------
+  build-web:
+    needs: [ci-gate, validate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js (production)
+        working-directory: apps/web
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NODE_ENV: production
+        run: pnpm run build
+
+      - name: Package Web artifact
+        run: |
+          tar czf web-artifact.tar.gz \
+            apps/web/.next/ \
+            apps/web/public/ \
+            apps/web/package.json \
+            apps/web/pnpm-lock.yaml \
+            apps/web/next.config.* \
+            --exclude='apps/web/.next/cache'
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build-prod
+          path: web-artifact.tar.gz
+          retention-days: 30
+
+  # ---------- Deploy to Production ----------
+  deploy:
+    needs: [build-api, build-web, validate]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://uniqmys.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download API artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-build-prod
+
+      - name: Download Web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build-prod
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Pre-deploy backup
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << 'EOSSH'
+            set -e
+            BACKUP_DIR="${{ env.DEPLOY_PATH }}/backups"
+            mkdir -p "$BACKUP_DIR"
+
+            # DB backup (son 3 backup tut)
+            BACKUP_FILE="$BACKUP_DIR/pre_deploy_$(date +%Y%m%d_%H%M%S).sql.gz"
+            if command -v pg_dump &> /dev/null; then
+              pg_dump -h localhost -U postgres emlak_prod 2>/dev/null | gzip > "$BACKUP_FILE" || true
+              echo "✓ DB backup: $BACKUP_FILE"
+            else
+              echo "⚠ pg_dump not found, skipping DB backup"
+            fi
+
+            # Cleanup old backups (keep last 3)
+            ls -t "$BACKUP_DIR"/pre_deploy_*.sql.gz 2>/dev/null | tail -n +4 | xargs rm -f 2>/dev/null || true
+          EOSSH
+
+      - name: Create release directory
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          RELEASE_ID="${VERSION}_$(date +%Y%m%d_%H%M%S)"
+          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << EOSSH
+            set -e
+            mkdir -p ${{ env.DEPLOY_PATH }}/releases/${RELEASE_ID}
+            mkdir -p ${{ env.DEPLOY_PATH }}/shared/logs
+            mkdir -p ${{ env.DEPLOY_PATH }}/shared/uploads
+          EOSSH
+
+      - name: Upload artifacts to server
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            api-artifact.tar.gz \
+            web-artifact.tar.gz \
+            ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }}:/tmp/
+
+      - name: Extract and deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << 'EOSSH'
+            set -e
+            RELEASE_DIR="${{ env.DEPLOY_PATH }}/releases/${{ env.RELEASE_ID }}"
+
+            # Extract artifacts
+            cd "$RELEASE_DIR"
+            tar xzf /tmp/api-artifact.tar.gz
+            tar xzf /tmp/web-artifact.tar.gz
+            rm -f /tmp/api-artifact.tar.gz /tmp/web-artifact.tar.gz
+
+            # Write version file
+            echo "${{ env.VERSION }}" > "$RELEASE_DIR/VERSION"
+
+            # Symlink shared resources
+            ln -sfn ${{ env.DEPLOY_PATH }}/shared/.env "$RELEASE_DIR/apps/api/.env"
+            ln -sfn ${{ env.DEPLOY_PATH }}/shared/.env.web "$RELEASE_DIR/apps/web/.env.local"
+            ln -sfn ${{ env.DEPLOY_PATH }}/shared/logs "$RELEASE_DIR/logs"
+            ln -sfn ${{ env.DEPLOY_PATH }}/shared/uploads "$RELEASE_DIR/uploads"
+
+            # Install API production dependencies
+            cd "$RELEASE_DIR/apps/api"
+            if command -v uv &> /dev/null; then
+              uv sync --no-dev
+            fi
+
+            # Install Web production dependencies
+            cd "$RELEASE_DIR/apps/web"
+            pnpm install --frozen-lockfile --prod 2>/dev/null || npm install --production
+
+            # Run DB migrations
+            cd "$RELEASE_DIR/apps/api"
+            if [ -f alembic.ini ]; then
+              echo "Running database migrations..."
+              uv run alembic upgrade head 2>/dev/null || alembic upgrade head
+            fi
+
+            # Atomic symlink switch
+            ln -sfn "$RELEASE_DIR" "${{ env.DEPLOY_PATH }}/current"
+
+            echo "✓ Release ${{ env.RELEASE_ID }} deployed"
+          EOSSH
+
+      - name: Restart services (PM2 graceful)
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << 'EOSSH'
+            set -e
+            cd ${{ env.DEPLOY_PATH }}/current
+
+            # PM2 graceful reload (zero-downtime)
+            if [ -f ecosystem.config.js ]; then
+              pm2 reload ecosystem.config.js --update-env
+            else
+              pm2 restart all --update-env
+            fi
+
+            sleep 5
+            echo "✓ PM2 services reloaded"
+          EOSSH
+
+      - name: Production health check
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << 'EOSSH'
+            set -e
+            MAX_RETRIES=15
+            RETRY_DELAY=4
+
+            echo "=== Production Health Checks ==="
+
+            # API health
+            for i in $(seq 1 $MAX_RETRIES); do
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health 2>/dev/null || echo "000")
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "✓ API liveness OK (attempt $i)"
+                break
+              fi
+              if [ "$i" = "$MAX_RETRIES" ]; then
+                echo "✗ API health check FAILED"
+                exit 1
+              fi
+              echo "⏳ API not ready... (attempt $i/$MAX_RETRIES)"
+              sleep $RETRY_DELAY
+            done
+
+            # API readiness (DB + Redis + MinIO)
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health/ready 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✓ API readiness OK (DB + Redis + MinIO)"
+            else
+              echo "⚠ API readiness returned HTTP $HTTP_CODE (dependencies may be warming up)"
+            fi
+
+            # Web health
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+              echo "✓ Web health OK (HTTP $HTTP_CODE)"
+            else
+              echo "⚠ Web returned HTTP $HTTP_CODE"
+            fi
+
+            echo "=== All checks passed ==="
+          EOSSH
+
+      - name: Cleanup old releases (keep last 7)
+        if: success()
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << 'EOSSH'
+            cd ${{ env.DEPLOY_PATH }}/releases
+            ls -dt */ | tail -n +8 | xargs rm -rf 2>/dev/null || true
+            echo "✓ Old releases cleaned up (keeping last 7)"
+          EOSSH
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ env.SERVER_HOST }} << 'EOSSH'
+            set -e
+            echo "⚠ Deploy failed — initiating automatic rollback"
+
+            CURRENT_RELEASE=$(readlink -f ${{ env.DEPLOY_PATH }}/current)
+            CURRENT_NAME=$(basename "$CURRENT_RELEASE")
+
+            PREVIOUS=$(ls -dt ${{ env.DEPLOY_PATH }}/releases/*/ | grep -v "$CURRENT_NAME" | head -1)
+
+            if [ -n "$PREVIOUS" ]; then
+              ln -sfn "$PREVIOUS" "${{ env.DEPLOY_PATH }}/current"
+
+              cd "${{ env.DEPLOY_PATH }}/current"
+              pm2 reload ecosystem.config.js --update-env 2>/dev/null || pm2 restart all
+
+              sleep 5
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health)
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "✅ Rollback successful: → $(basename $PREVIOUS)"
+              else
+                echo "✗ Rollback done but health check failed (HTTP $HTTP_CODE)"
+              fi
+            else
+              echo "✗ No previous release for rollback"
+              exit 1
+            fi
+          EOSSH
+
+      - name: Create GitHub Release
+        if: success() && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          name: Release ${{ needs.validate.outputs.version }}
+          body: |
+            ## Deploy Info
+            - **Version:** ${{ needs.validate.outputs.version }}
+            - **Release ID:** ${{ env.RELEASE_ID }}
+            - **Deployed by:** ${{ github.actor }}
+            - **Commit:** ${{ github.sha }}
+          draft: false
+          prerelease: ${{ contains(needs.validate.outputs.version, '-') }}

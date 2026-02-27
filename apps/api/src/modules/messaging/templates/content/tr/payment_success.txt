@@ -1,0 +1,14 @@
+---
+buttons:
+  - text: 'Odeme Detaylari'
+    url: 'https://emlak.com/hesabim/odemeler'
+---
+Odemeniz basariyla alindi!
+
+Plan: {{ plan_name }}
+Tutar: {{ amount }} TL
+Tarih: {{ date }}
+
+Aboneliginiz aktif edilmistir. Platformun tum ozelliklerinden yararlanmaya baslayabilirsiniz.
+
+Tesekkur ederiz!

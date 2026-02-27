@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Değerleme Raporu — {{ prediction_id[:8] | upper }}</title>
+    <style>
+        /* ===== A4 Sayfa Ayarlari ===== */
+        @page {
+            size: A4;
+            margin: 20mm 18mm 25mm 18mm;
+
+            @bottom-center {
+                content: "Sayfa " counter(page) " / " counter(pages);
+                font-family: 'Noto Sans', sans-serif;
+                font-size: 8pt;
+                color: #94a3b8;
+            }
+        }
+
+        /* ===== Genel ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans', 'DejaVu Sans', 'Arial', sans-serif;
+            font-size: 10pt;
+            line-height: 1.55;
+            color: #1e293b;
+        }
+
+        /* ===== Header ===== */
+        .report-header {
+            padding-bottom: 14px;
+            border-bottom: 3px solid #1e40af;
+            margin-bottom: 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .office-logo {
+            max-height: 40px;
+            max-width: 120px;
+            object-fit: contain;
+        }
+
+        .office-name {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .report-header .brand {
+            font-size: 9pt;
+            font-weight: 600;
+            color: #1e40af;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .report-header h1 {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 6px 0 10px 0;
+            text-align: center;
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 9pt;
+            color: #475569;
+            text-align: center;
+        }
+
+        .report-meta .meta-item {
+            display: inline-block;
+        }
+
+        .report-meta .meta-label {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        /* ===== Section ===== */
+        .section {
+            margin-bottom: 18px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #1e40af;
+            border-bottom: 2px solid #dbeafe;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        /* ===== Bilgi Tablosu (Key-Value) ===== */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+
+        .info-table td:first-child {
+            width: 40%;
+            font-weight: 600;
+            color: #475569;
+            background-color: #f8fafc;
+        }
+
+        .info-table td:last-child {
+            color: #1e293b;
+        }
+
+        /* ===== Degerleme Sonucu ===== */
+        .valuation-box {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .price-main {
+            font-size: 28pt;
+            font-weight: 800;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+
+        .price-range {
+            font-size: 11pt;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+
+        .price-range .range-label {
+            font-size: 9pt;
+            color: #64748b;
+        }
+
+        .metrics-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 12px;
+        }
+
+        .metric-card {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .metric-label {
+            font-size: 8pt;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== Guven Cubugu ===== */
+        .confidence-section {
+            margin-top: 12px;
+        }
+
+        .confidence-label {
+            font-size: 9pt;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .confidence-bar-bg {
+            width: 240px;
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .confidence-bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            background-color: #22c55e;
+        }
+
+        /* ===== Bolge Analizi ===== */
+        .area-stats-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .area-stat-card {
+            flex: 1;
+            min-width: 140px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            text-align: center;
+        }
+
+        .area-stat-value {
+            font-size: 13pt;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .area-stat-label {
+            font-size: 8pt;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ===== Emsal Tablosu ===== */
+        .comparables-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        .comparables-table thead th {
+            background-color: #1e40af;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 7px 8px;
+            text-align: left;
+            font-size: 8.5pt;
+        }
+
+        .comparables-table thead th:first-child {
+            border-radius: 4px 0 0 0;
+        }
+
+        .comparables-table thead th:last-child {
+            border-radius: 0 4px 0 0;
+        }
+
+        .comparables-table tbody td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparables-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .comparables-table .text-right {
+            text-align: right;
+        }
+
+        .comparables-table .text-center {
+            text-align: center;
+        }
+
+        .similarity-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 8pt;
+            font-weight: 600;
+        }
+
+        .similarity-high {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .similarity-medium {
+            background-color: #fef9c3;
+            color: #854d0e;
+        }
+
+        .similarity-low {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* ===== Bolge Fiyat Trendi Tablosu ===== */
+        .trend-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        .trend-table thead th {
+            background-color: #1e40af;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 7px 8px;
+            text-align: left;
+            font-size: 8.5pt;
+        }
+
+        .trend-table thead th:first-child {
+            border-radius: 4px 0 0 0;
+        }
+
+        .trend-table thead th:last-child {
+            border-radius: 0 4px 0 0;
+        }
+
+        .trend-table tbody td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .trend-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .trend-table .text-right {
+            text-align: right;
+        }
+
+        .trend-change-positive {
+            color: #166534;
+            font-weight: 600;
+        }
+
+        .trend-change-negative {
+            color: #991b1b;
+            font-weight: 600;
+        }
+
+        /* ===== Enriched Comparables ===== */
+        .price-diff-positive {
+            color: #991b1b;
+            font-weight: 600;
+        }
+
+        .price-diff-negative {
+            color: #166534;
+            font-weight: 600;
+        }
+
+        /* ===== Danisman Bilgi Footer ===== */
+        .advisor-footer {
+            margin-top: 20px;
+            padding: 12px 16px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            page-break-inside: avoid;
+        }
+
+        .advisor-info {
+            font-size: 9pt;
+            color: #334155;
+        }
+
+        .advisor-name {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 2px;
+        }
+
+        .advisor-contact {
+            font-size: 8.5pt;
+            color: #64748b;
+        }
+
+        .advisor-office-label {
+            font-size: 8pt;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* ===== Disclaimer ===== */
+        .disclaimer {
+            margin-top: 24px;
+            padding: 14px 16px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 4px 4px 0;
+            page-break-inside: avoid;
+        }
+
+        .disclaimer-title {
+            font-size: 9pt;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 4px;
+        }
+
+        .disclaimer p {
+            font-size: 8pt;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+
+        .disclaimer p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ===== Footer ===== */
+        .report-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 8pt;
+            color: #94a3b8;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== Header ===== -->
+    <div class="report-header">
+        {% if office_info %}
+        <div class="header-top">
+            <div class="header-left">
+                {% if office_info.logo_url %}
+                <img src="{{ office_info.logo_url }}" alt="{{ office_info.name }}" class="office-logo">
+                {% endif %}
+                <span class="office-name">{{ office_info.name }}</span>
+            </div>
+            <div class="brand">Emlak Teknoloji Platformu</div>
+        </div>
+        {% else %}
+        <div class="brand">Emlak Teknoloji Platformu</div>
+        {% endif %}
+        <h1>Gayrimenkul Değerleme Raporu</h1>
+        <div class="report-meta">
+            <span class="meta-item">
+                <span class="meta-label">Rapor Tarihi:</span> {{ report_date }}
+            </span>
+            <span class="meta-item">
+                <span class="meta-label">Referans No:</span> {{ prediction_id[:8] | upper }}
+            </span>
+            <span class="meta-item">
+                <span class="meta-label">Model:</span> {{ model_version }}
+            </span>
+        </div>
+    </div>
+
+    <!-- ===== 1. Gayrimenkul Bilgileri ===== -->
+    <div class="section">
+        <h2 class="section-title">1. Gayrimenkul Bilgileri</h2>
+        <table class="info-table">
+            <tr>
+                <td>İlçe</td>
+                <td>{{ district }}</td>
+            </tr>
+            <tr>
+                <td>Mahalle</td>
+                <td>{{ neighborhood }}</td>
+            </tr>
+            <tr>
+                <td>Gayrimenkul Tipi</td>
+                <td>{{ property_type }}</td>
+            </tr>
+            <tr>
+                <td>Net Alan</td>
+                <td>{{ net_sqm | decimal }} m²</td>
+            </tr>
+            <tr>
+                <td>Brüt Alan</td>
+                <td>{{ gross_sqm | decimal }} m²</td>
+            </tr>
+            <tr>
+                <td>Oda + Salon</td>
+                <td>{{ room_count }}+{{ living_room_count }}</td>
+            </tr>
+            <tr>
+                <td>Bulunduğu Kat / Toplam Kat</td>
+                <td>{{ floor }} / {{ total_floors }}</td>
+            </tr>
+            <tr>
+                <td>Bina Yaşı</td>
+                <td>{{ building_age }} yıl</td>
+            </tr>
+            <tr>
+                <td>Isıtma Tipi</td>
+                <td>{{ heating_type }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ===== 2. AI Degerleme Sonucu ===== -->
+    <div class="section">
+        <h2 class="section-title">2. AI Değerleme Sonucu</h2>
+        <div class="valuation-box">
+            <div class="price-main">{{ estimated_price | currency }}</div>
+            <div class="price-range">
+                <span class="range-label">Fiyat Aralığı:</span>
+                {{ min_price | currency }} — {{ max_price | currency }}
+            </div>
+            <div class="metrics-row">
+                <div class="metric-card">
+                    <div class="metric-value">{{ price_per_sqm | currency }}</div>
+                    <div class="metric-label">m² Birim Fiyat</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ confidence | percent }}</div>
+                    <div class="metric-label">Güven Skoru</div>
+                </div>
+            </div>
+            <div class="confidence-section">
+                <div class="confidence-label">Güven Seviyesi</div>
+                <div class="confidence-bar-bg">
+                    <div class="confidence-bar-fill" style="width: {{ (confidence * 100) | int }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 3. Bolge Analizi (opsiyonel) ===== -->
+    {% if area_stats %}
+    <div class="section">
+        <h2 class="section-title">3. Bölge Analizi — {{ district }}</h2>
+        <div class="area-stats-grid">
+            {% if area_stats.avg_price_sqm_sale is not none %}
+            <div class="area-stat-card">
+                <div class="area-stat-value">{{ area_stats.avg_price_sqm_sale | currency }}</div>
+                <div class="area-stat-label">Ort. m² Satış Fiyatı</div>
+            </div>
+            {% endif %}
+            {% if area_stats.avg_price_sqm_rent is not none %}
+            <div class="area-stat-card">
+                <div class="area-stat-value">{{ area_stats.avg_price_sqm_rent | currency }}</div>
+                <div class="area-stat-label">Ort. m² Kira Fiyatı</div>
+            </div>
+            {% endif %}
+            {% if area_stats.listing_count is not none %}
+            <div class="area-stat-card">
+                <div class="area-stat-value">{{ area_stats.listing_count | number }}</div>
+                <div class="area-stat-label">Aktif İlan Sayısı</div>
+            </div>
+            {% endif %}
+            {% if area_stats.population is not none %}
+            <div class="area-stat-card">
+                <div class="area-stat-value">{{ area_stats.population | number }}</div>
+                <div class="area-stat-label">Nüfus</div>
+            </div>
+            {% endif %}
+            {% if area_stats.transport_score is not none %}
+            <div class="area-stat-card">
+                <div class="area-stat-value">{{ area_stats.transport_score | decimal }}/10</div>
+                <div class="area-stat-label">Ulaşım Skoru</div>
+            </div>
+            {% endif %}
+            {% if area_stats.investment_score is not none %}
+            <div class="area-stat-card">
+                <div class="area-stat-value">{{ area_stats.investment_score | decimal }}/10</div>
+                <div class="area-stat-label">Yatırım Skoru</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== Bolge Fiyat Trendi (opsiyonel) ===== -->
+    {% set section_num = namespace(val=3) %}
+    {% if area_stats %}
+        {% set section_num.val = 4 %}
+    {% endif %}
+
+    {% if area_trend %}
+    <div class="section">
+        <h2 class="section-title">{{ section_num.val }}. Bölge Fiyat Trendi — {{ district }}</h2>
+        <table class="trend-table">
+            <thead>
+                <tr>
+                    <th>Dönem</th>
+                    <th class="text-right">Ort. m² Fiyat</th>
+                    <th class="text-right">Medyan Fiyat</th>
+                    <th class="text-right">İlan Sayısı</th>
+                    <th class="text-right">Değişim</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in area_trend %}
+                <tr>
+                    <td>{{ item.period }}</td>
+                    <td class="text-right">{{ item.avg_price_sqm | currency }}</td>
+                    <td class="text-right">{{ item.median_price | currency }}</td>
+                    <td class="text-right">{{ item.listing_count | number }}</td>
+                    <td class="text-right">
+                        {% if item.change_pct is not none %}
+                            {% if item.change_pct >= 0 %}
+                            <span class="trend-change-positive">+{{ item.change_pct | decimal }}%</span>
+                            {% else %}
+                            <span class="trend-change-negative">{{ item.change_pct | decimal }}%</span>
+                            {% endif %}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% set section_num.val = section_num.val + 1 %}
+    {% endif %}
+
+    <!-- ===== Emsal Karsilastirma Tablosu (opsiyonel) ===== -->
+    {% if comparables %}
+    <div class="section">
+        <h2 class="section-title">{{ section_num.val }}. Emsal Karşılaştırma</h2>
+        <table class="comparables-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    {% if comparables[0].address is defined and comparables[0].address is not none %}
+                    <th>Adres</th>
+                    {% else %}
+                    <th>İlçe</th>
+                    {% endif %}
+                    <th class="text-right">Net Alan</th>
+                    <th class="text-right">Fiyat</th>
+                    <th class="text-center">Oda</th>
+                    {% if comparables[0].distance_km is defined and comparables[0].distance_km is not none %}
+                    <th class="text-right">Mesafe</th>
+                    {% endif %}
+                    {% if comparables[0].price_diff_percent is defined %}
+                    <th class="text-right">Fiyat Farkı</th>
+                    {% endif %}
+                    <th class="text-center">Benzerlik</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comp in comparables %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    {% if comp.address is defined and comp.address is not none %}
+                    <td>{{ comp.address[:40] }}{% if comp.address | length > 40 %}…{% endif %}</td>
+                    {% elif comp.district is defined %}
+                    <td>{{ comp.district }}</td>
+                    {% else %}
+                    <td>—</td>
+                    {% endif %}
+                    <td class="text-right">{{ (comp.sqm if comp.sqm is defined else comp.net_sqm) | decimal }} m²</td>
+                    <td class="text-right">{{ comp.price | currency }}</td>
+                    <td class="text-center">{{ comp.rooms if comp.rooms is defined else comp.room_count }}</td>
+                    {% if comp.distance_km is defined and comp.distance_km is not none %}
+                    <td class="text-right">{{ comp.distance_km | decimal }} km</td>
+                    {% endif %}
+                    {% if comp.price_diff_percent is defined %}
+                    <td class="text-right">
+                        {% if comp.price_diff_percent >= 0 %}
+                        <span class="price-diff-positive">+{{ comp.price_diff_percent | decimal }}%</span>
+                        {% else %}
+                        <span class="price-diff-negative">{{ comp.price_diff_percent | decimal }}%</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    <td class="text-center">
+                        {% if comp.similarity_score >= 75 %}
+                        <span class="similarity-badge similarity-high">{{ comp.similarity_score | decimal }}%</span>
+                        {% elif comp.similarity_score >= 50 %}
+                        <span class="similarity-badge similarity-medium">{{ comp.similarity_score | decimal }}%</span>
+                        {% else %}
+                        <span class="similarity-badge similarity-low">{{ comp.similarity_score | decimal }}%</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ===== Yasal Uyari ===== -->
+    <div class="disclaimer">
+        <div class="disclaimer-title">Yasal Uyarı</div>
+        <p>
+            Bu rapor, yapay zeka destekli istatistiksel modelleme yöntemleri kullanılarak
+            hazırlanmış olup yalnızca bilgilendirme amaçlıdır. Resmi gayrimenkul değerleme
+            raporu yerine geçmez.
+        </p>
+        <p>
+            Tahmini değer; mülkün fiziksel durumu, hukuki durumu, çevresel faktörler ve
+            piyasa koşullarındaki anlık değişimler gibi model tarafından tam olarak
+            yansıtılamayan unsurlardan etkilenebilir.
+        </p>
+        <p>
+            Kesin değerleme için SPK lisanslı bir gayrimenkul değerleme uzmanına
+            başvurmanız önerilir. Emlak Teknoloji Platformu, bu raporda yer alan bilgilere
+            dayanılarak alınan kararlardan doğabilecek zararlardan sorumlu tutulamaz.
+        </p>
+    </div>
+
+    <!-- ===== Danisman Bilgisi (opsiyonel) ===== -->
+    {% if user_info %}
+    <div class="advisor-footer">
+        <div class="advisor-info">
+            <div class="advisor-name">{{ user_info.full_name }}</div>
+            <div class="advisor-contact">
+                {% if user_info.email %}{{ user_info.email }}{% endif %}
+                {% if user_info.email and user_info.phone %} · {% endif %}
+                {% if user_info.phone %}{{ user_info.phone }}{% endif %}
+            </div>
+            {% if office_info %}
+            <div class="advisor-office-label">{{ office_info.name }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== Footer ===== -->
+    <div class="report-footer">
+        {% if office_info %}
+        {{ office_info.name }} — AI Değerleme Sistemi &middot;
+        {% else %}
+        Emlak Teknoloji Platformu — AI Değerleme Sistemi &middot;
+        {% endif %}
+        Rapor {{ report_date }} tarihinde otomatik olarak oluşturulmuştur.
+    </div>
+
+</body>
+</html>

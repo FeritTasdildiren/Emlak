@@ -1,0 +1,745 @@
+# ============================================
+# Grafana Unified Alerting - Alert Rules
+# ============================================
+# Emlak Teknoloji Platformu production alert kurallari.
+#
+# ONEMLI: Grafana 9+ Unified Alerting kullanir.
+# Bu dosya provisioning ile otomatik yuklenir.
+#
+# Alert Severity Seviyeleri:
+#   critical → Aninda aksiyon, Telegram bildirimi
+#   high     → 15dk icinde aksiyon, Telegram bildirimi
+#   warning  → Is saatlerinde incelenmeli
+#
+# Ref: https://grafana.com/docs/grafana/latest/alerting/set-up/provision-alerting-resources/file-provisioning/
+
+apiVersion: 1
+
+# ─── Contact Points ───────────────────────────
+contactPoints:
+  - orgId: 1
+    name: telegram-critical
+    receivers:
+      - uid: telegram-critical-receiver
+        type: telegram
+        settings:
+          bottoken: "${TELEGRAM_BOT_TOKEN}"
+          chatid: "${TELEGRAM_CHAT_ID}"
+          parse_mode: HTML
+          message: |
+            {{ if eq .Status "firing" }}🔴{{ else }}🟢{{ end }} <b>{{ .Status | toUpper }}</b>
+
+            <b>{{ .CommonLabels.alertname }}</b>
+            Severity: <b>{{ .CommonLabels.severity }}</b>
+            {{ range .Alerts }}
+            📋 {{ .Annotations.summary }}
+            📝 {{ .Annotations.description }}
+            🕐 {{ .StartsAt.Format "02.01.2006 15:04:05" }}
+            {{ end }}
+            🏷 Ortam: production
+            📊 <a href="http://grafana:3001/d/sla-overview">SLA Dashboard</a>
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: telegram-warning
+    receivers:
+      - uid: telegram-warning-receiver
+        type: telegram
+        settings:
+          bottoken: "${TELEGRAM_BOT_TOKEN}"
+          chatid: "${TELEGRAM_CHAT_ID}"
+          parse_mode: HTML
+          message: |
+            ⚠️ <b>UYARI</b>
+
+            <b>{{ .CommonLabels.alertname }}</b>
+            {{ range .Alerts }}
+            📋 {{ .Annotations.summary }}
+            📝 {{ .Annotations.description }}
+            🕐 {{ .StartsAt.Format "02.01.2006 15:04:05" }}
+            {{ end }}
+            🏷 Ortam: production
+        disableResolveMessage: false
+
+# ─── Notification Policies ────────────────────
+policies:
+  - orgId: 1
+    receiver: telegram-warning
+    group_by:
+      - alertname
+      - severity
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      # Critical alerts → aninda bildirim, 15dk tekrar
+      - receiver: telegram-critical
+        matchers:
+          - severity = critical
+        group_wait: 10s
+        group_interval: 1m
+        repeat_interval: 15m
+        mute_time_intervals: []
+        continue: false
+
+      # High alerts → Telegram, 30dk tekrar
+      - receiver: telegram-critical
+        matchers:
+          - severity = high
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 30m
+        continue: false
+
+      # Warning → sadece ilk bildirim, 4 saatte bir tekrar
+      - receiver: telegram-warning
+        matchers:
+          - severity = warning
+        group_wait: 1m
+        group_interval: 10m
+        repeat_interval: 4h
+        continue: false
+
+# ─── Mute Time Intervals ─────────────────────
+# Bakim penceresi icin mute (gerektiginde aktif et)
+muteTimes:
+  - orgId: 1
+    name: maintenance-window
+    time_intervals:
+      - times:
+          - start_time: "03:00"
+            end_time: "04:00"
+        weekdays:
+          - "sunday"
+        location: "Europe/Istanbul"
+
+# ─── Alert Rule Groups ───────────────────────
+groups:
+  # ═══════════════════════════════════════════
+  # GRUP 1: Altyapi Saglik Kontrolleri
+  # ═══════════════════════════════════════════
+  - orgId: 1
+    name: infra-health
+    folder: Emlak Alerts
+    interval: 1m
+    rules:
+      # ─── ALERT 1: API Down ─────────────────
+      # /health endpoint'i 5dk boyunca yanit vermiyor
+      - uid: alert-api-down
+        title: "API Servisi Down"
+        condition: api_health_check
+        data:
+          - refId: api_health_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - api_health_probe
+                  reducer:
+                    type: last
+          - refId: api_health_probe
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" name = "GET /health" status = ok }'
+              queryType: traceql
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: "🚨 API servisi 5 dakikadir yanit vermiyor!"
+          description: "/health endpoint'i basarisiz. Servis tamamen erisim disi olabilir. Acil mudahale gerekli."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/api-down.md"
+        labels:
+          severity: critical
+          team: backend
+          service: api
+          alert_channel: telegram
+
+      # ─── ALERT 2: Database Baglantisi Koptu ──
+      - uid: alert-db-lost
+        title: "Veritabani Baglantisi Koptu"
+        condition: db_health_check
+        data:
+          - refId: db_health_check
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - db_health_probe
+                  reducer:
+                    type: last
+          - refId: db_health_probe
+            relativeTimeRange:
+              from: 180
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" name = "GET /health/db" status = ok }'
+              queryType: traceql
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 3m
+        annotations:
+          summary: "🚨 Veritabani baglantisi 3 dakikadir kayip!"
+          description: "/health/db SELECT 1 sorgusu basarisiz. PostgreSQL erisim disi olabilir. Connection pool ve DB sunucu durumunu kontrol et."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/db-connection-lost.md"
+        labels:
+          severity: critical
+          team: backend
+          service: database
+          alert_channel: telegram
+
+      # ─── ALERT 3: Disk Kullanimi Yuksek ─────
+      - uid: alert-disk-high
+        title: "Disk Kullanimi Yuksek (>85%)"
+        condition: disk_check
+        data:
+          - refId: disk_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: math
+              expression: "$disk_usage > 85"
+          - refId: disk_usage
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 85
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - disk_usage
+                  reducer:
+                    type: last
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "⚠️ Disk kullanimi %85 esigini asti!"
+          description: "Sunucu disk alani kritik seviyede. Log rotasyonu, gecici dosya temizligi ve Tempo trace retention kontrol edilmeli."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/disk-high.md"
+        labels:
+          severity: warning
+          team: devops
+          service: infrastructure
+          alert_channel: telegram
+
+      # ─── ALERT 4: Memory Kullanimi Yuksek ───
+      - uid: alert-memory-high
+        title: "Memory Kullanimi Yuksek (>90%)"
+        condition: memory_check
+        data:
+          - refId: memory_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 90
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - memory_check
+                  reducer:
+                    type: last
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "🔴 Memory kullanimi %90 esigini asti!"
+          description: "RAM tuketimi kritik. OOM killer riski var. API ve Celery worker memory leak kontrolu yapilmali."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/memory-high.md"
+        labels:
+          severity: high
+          team: devops
+          service: infrastructure
+          alert_channel: telegram
+
+  # ═══════════════════════════════════════════
+  # GRUP 2: API Performans Alertleri
+  # ═══════════════════════════════════════════
+  - orgId: 1
+    name: api-performance
+    folder: Emlak Alerts
+    interval: 1m
+    rules:
+      # ─── ALERT 5: Yuksek Response Time ──────
+      - uid: alert-high-latency
+        title: "API Yanit Suresi Yuksek (p95 > 3s)"
+        condition: latency_check
+        data:
+          - refId: latency_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 3000
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - p95_latency
+                  reducer:
+                    type: last
+          - refId: p95_latency
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" kind = server } | quantile_over_time(duration, 0.95) by (resource.service.name)'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "⚠️ API p95 yanit suresi 3 saniyeyi asti!"
+          description: "API performansi bozulmus. Yavas sorgular, N+1 query veya dis servis gecikmesi olabilir. Trace Explorer'dan en yavas endpoint'leri kontrol et."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/high-latency.md"
+        labels:
+          severity: warning
+          team: backend
+          service: api
+
+      # ─── ALERT 6: Yuksek Error Rate ────────
+      - uid: alert-high-error-rate
+        title: "Yuksek Hata Orani (5xx > 5%)"
+        condition: error_rate_check
+        data:
+          - refId: error_rate_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - error_percentage
+                  reducer:
+                    type: last
+          - refId: error_percentage
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" status = error } | rate() by (resource.service.name)'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "🔴 5xx hata orani %5'i gecti!"
+          description: "Sunucu hata orani kabul edilebilir seviyenin uzerinde. Son deploy, DB baglanti havuzu veya dis servis sorunlari kontrol edilmeli."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/high-error-rate.md"
+        labels:
+          severity: high
+          team: backend
+          service: api
+          alert_channel: telegram
+
+  # ═══════════════════════════════════════════
+  # GRUP 3: Async Islem Alertleri
+  # ═══════════════════════════════════════════
+  - orgId: 1
+    name: async-processing
+    folder: Emlak Alerts
+    interval: 2m
+    rules:
+      # ─── ALERT 7: Outbox Lag Yuksek ────────
+      - uid: alert-outbox-lag
+        title: "Outbox Kuyruk Gecikmesi Yuksek (>100)"
+        condition: outbox_lag_check
+        data:
+          - refId: outbox_lag_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 100
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - outbox_pending
+                  reducer:
+                    type: last
+          - refId: outbox_pending
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" name =~ ".*outbox.*" } | rate() by (name)'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "⚠️ Outbox kuyrugunda 100'den fazla bekleyen event var!"
+          description: "Outbox isleme gecikmesi yuksek. Worker performansi veya DB lock kontrol edilmeli. Admin panelden /admin/outbox/metrics kontrol et."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/outbox-lag.md"
+        labels:
+          severity: warning
+          team: backend
+          service: outbox
+
+      # ─── ALERT 8: Celery Kuyruk Birikiyor ──
+      - uid: alert-celery-queue
+        title: "Celery Kuyrugu Birikiyor (>50)"
+        condition: celery_queue_check
+        data:
+          - refId: celery_queue_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 50
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - celery_tasks
+                  reducer:
+                    type: last
+          - refId: celery_tasks
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-celery" name =~ ".*celery.*" } | rate() by (name)'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "⚠️ Celery kuyrugunda 50'den fazla bekleyen gorev var!"
+          description: "Celery task birikiyor. Worker sayisi yetersiz olabilir veya uzun suren gorevler kuyrugu blokluyor olabilir."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/celery-queue.md"
+        labels:
+          severity: warning
+          team: backend
+          service: celery
+
+  # ═══════════════════════════════════════════
+  # GRUP 4: ML Model Alertleri
+  # ═══════════════════════════════════════════
+  - orgId: 1
+    name: ml-model-health
+    folder: Emlak Alerts
+    interval: 5m
+    rules:
+      # ─── ALERT 9: ML Drift Tespit Edildi ───
+      - uid: alert-ml-drift
+        title: "ML Model Drift (PSI > 0.2)"
+        condition: drift_check
+        data:
+          - refId: drift_check
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.2
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - psi_score
+                  reducer:
+                    type: last
+          - refId: psi_score
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" name =~ ".*drift.*psi.*" }'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "⚠️ ML model drift tespit edildi (PSI > 0.2)!"
+          description: "Degerleme modelinin giris verisi dagilimlari egitim verisinden sapma gosteriyor. PSI (Population Stability Index) esigi asildi. Model yeniden egitim gerekebilir."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/ml-drift.md"
+        labels:
+          severity: warning
+          team: ml
+          service: ml-model
+
+  # ═══════════════════════════════════════════
+  # GRUP 5: Guvenlik Alertleri
+  # ═══════════════════════════════════════════
+  - orgId: 1
+    name: security
+    folder: Emlak Alerts
+    interval: 1m
+    rules:
+      # ─── ALERT 10: RLS Violation ───────────
+      - uid: alert-rls-violation
+        title: "RLS (Row Level Security) Ihlali"
+        condition: rls_check
+        data:
+          - refId: rls_check
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - rls_violations
+                  reducer:
+                    type: last
+          - refId: rls_violations
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" name =~ ".*rls.*violation.*" status = error }'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "🚨 RLS (Row Level Security) ihlali tespit edildi!"
+          description: "Bir kullanici baska bir tenant'in verisine erismeye calisti. Bu ciddi bir guvenlik olayidir. Hemen IP, kullanici ve islem detaylarini inceleyin."
+          runbook_url: "https://github.com/emlak-platform/runbooks/blob/main/rls-violation.md"
+        labels:
+          severity: critical
+          team: security
+          service: database
+          alert_channel: telegram
+
+  # ═══════════════════════════════════════════
+  # GRUP 6: SLA Uyum Alertleri
+  # ═══════════════════════════════════════════
+  - orgId: 1
+    name: sla-compliance
+    folder: Emlak Alerts
+    interval: 5m
+    rules:
+      # ─── SLA: Uptime %99.5 altina dustu ───
+      - uid: alert-sla-uptime
+        title: "SLA Ihlali: Uptime < %99.5"
+        condition: uptime_sla_check
+        data:
+          - refId: uptime_sla_check
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 99.5
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - uptime_percent
+                  reducer:
+                    type: last
+          - refId: uptime_percent
+            relativeTimeRange:
+              from: 604800
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" name = "GET /health" } | rate() by (status)'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 15m
+        annotations:
+          summary: "🔴 SLA Ihlali: Haftalik uptime %99.5 altina dustu!"
+          description: "Son 7 gun icinde uptime SLA esigi asildi. Downtime nedenleri ve surelerini inceleyin. Post-mortem raporu hazirlanmali."
+        labels:
+          severity: high
+          team: devops
+          service: platform
+          alert_channel: telegram
+
+      # ─── SLA: API p95 latency > 500ms ─────
+      - uid: alert-sla-latency-p95
+        title: "SLA Uyarisi: API p95 > 500ms"
+        condition: sla_p95_check
+        data:
+          - refId: sla_p95_check
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 500
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - sla_p95_latency
+                  reducer:
+                    type: last
+          - refId: sla_p95_latency
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" kind = server } | quantile_over_time(duration, 0.95) by (resource.service.name)'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 15m
+        annotations:
+          summary: "⚠️ SLA Uyarisi: API p95 yanit suresi 500ms'i asti!"
+          description: "SLA hedefi olan p95 < 500ms asildi. Performans optimizasyonu gerekli. Yavas endpoint'leri tespit edip iyilestirme plani olusturun."
+        labels:
+          severity: warning
+          team: backend
+          service: api
+
+      # ─── SLA: Error Rate > %1 ─────────────
+      - uid: alert-sla-error-rate
+        title: "SLA Ihlali: Error Rate > %1"
+        condition: sla_error_check
+        data:
+          - refId: sla_error_check
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "__expr__"
+            model:
+              type: classic_conditions
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - sla_error_rate
+                  reducer:
+                    type: last
+          - refId: sla_error_rate
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: tempo
+            model:
+              editorMode: code
+              expr: '{ resource.service.name = "emlak-api" status = error } | rate() by (resource.service.name)'
+              queryType: traceql
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "🔴 SLA Ihlali: Hata orani %1 esigini gecti!"
+          description: "Toplam istek icindeki hata orani SLA limitini asti. Hata kaynaklarini tespit edip acil mudahale yapin."
+        labels:
+          severity: high
+          team: backend
+          service: api
+          alert_channel: telegram

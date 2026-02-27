@@ -1,0 +1,12 @@
+---
+buttons:
+  - text: 'Ofis Sayfamiz'
+    url: 'https://emlak.com/ofis/{{ office_name | urlencode }}'
+---
+Merhaba {{ name }},
+
+{{ office_name }} ailesine hos geldiniz! Platformumuzu kullanarak ilanlarinizi kolayca yonetebilir, musterilerinizle hizla iletisim kurabilirsiniz.
+
+Herhangi bir sorunuz olursa bize yazmaktan cekinmeyin.
+
+Iyi calismalar dileriz!

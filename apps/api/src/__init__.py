@@ -1,0 +1,1 @@
+# Emlak Teknoloji Platformu - API

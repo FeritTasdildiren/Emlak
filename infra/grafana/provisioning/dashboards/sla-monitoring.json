@@ -1,0 +1,1136 @@
+{
+  "id": null,
+  "uid": "sla-overview",
+  "title": "SLA Monitoring & Alert Overview",
+  "description": "Emlak Teknoloji Platformu - SLA uyum takibi, alert gecmisi, endpoint performans ve kaynak kullanimi",
+  "tags": ["sla", "alerts", "monitoring", "emlak", "production"],
+  "timezone": "Europe/Istanbul",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m"],
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "custom",
+        "label": "Servis",
+        "current": {
+          "text": "emlak-api",
+          "value": "emlak-api"
+        },
+        "options": [
+          { "text": "emlak-api", "value": "emlak-api", "selected": true },
+          { "text": "emlak-celery", "value": "emlak-celery", "selected": false },
+          { "text": "emlak-web", "value": "emlak-web", "selected": false }
+        ],
+        "query": "emlak-api,emlak-celery,emlak-web",
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "name": "sla_window",
+        "type": "custom",
+        "label": "SLA Penceresi",
+        "current": {
+          "text": "7 Gun",
+          "value": "7d"
+        },
+        "options": [
+          { "text": "24 Saat", "value": "24h", "selected": false },
+          { "text": "7 Gun", "value": "7d", "selected": true },
+          { "text": "30 Gun", "value": "30d", "selected": false }
+        ],
+        "query": "24h,7d,30d",
+        "multi": false,
+        "includeAll": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "📊 SLA Overview - 7 Gun Trend",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Uptime (SLA: %99.5)",
+      "description": "Son 7 gundeki API uptime yuzdesi. Hedef: >= %99.5",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name = \"GET /health\" } | rate() by (status)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 99 },
+              { "color": "yellow", "value": 99.5 },
+              { "color": "green", "value": 99.9 }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "API p95 Latency (SLA: <500ms)",
+      "description": "API p95 yanit suresi. Hedef: < 500ms",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | quantile_over_time(duration, 0.95) by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 500 },
+              { "color": "orange", "value": 1000 },
+              { "color": "red", "value": 2000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "API p99 Latency (SLA: <2s)",
+      "description": "API p99 yanit suresi. Hedef: < 2000ms",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | quantile_over_time(duration, 0.99) by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 1000 },
+              { "color": "orange", "value": 2000 },
+              { "color": "red", "value": 3000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Error Rate (SLA: <%1)",
+      "description": "5xx hata orani. Hedef: < %1",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" status = error } | rate() by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Degerleme Suresi (SLA: <3s)",
+      "description": "ML degerleme endpoint yanit suresi. Hedef: < 3000ms",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*\" kind = server } | quantile_over_time(duration, 0.95) by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 2000 },
+              { "color": "orange", "value": 3000 },
+              { "color": "red", "value": 5000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Celery p95 (SLA: <30s)",
+      "description": "Celery task p95 suresi. Hedef: < 30s",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"emlak-celery\" } | quantile_over_time(duration, 0.95) by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 20 },
+              { "color": "orange", "value": 30 },
+              { "color": "red", "value": 60 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "SLA Metrikleri - 7 Gunluk Trend",
+      "description": "Uptime, latency ve error rate trendleri",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 5 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "p95",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | quantile_over_time(duration, 0.95) by (resource.service.name)"
+        },
+        {
+          "refId": "p99",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | quantile_over_time(duration, 0.99) by (resource.service.name)"
+        },
+        {
+          "refId": "errors",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" status = error } | rate() by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "scheme",
+            "showPoints": "auto",
+            "pointSize": 5,
+            "stacking": { "mode": "none" },
+            "axisPlacement": "auto",
+            "thresholdsStyle": { "mode": "dashed" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 2000 }
+            ]
+          },
+          "unit": "ms"
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] }
+      }
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "🔔 Alert Gecmisi - Son 24 Saat",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "collapsed": false
+    },
+    {
+      "id": 10,
+      "type": "alertlist",
+      "title": "Aktif Alertler",
+      "description": "Su anda firing durumundaki alertler",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "options": {
+        "showOptions": "current",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "dashboardAlerts": false,
+        "alertName": "",
+        "stateFilter": {
+          "firing": true,
+          "pending": true,
+          "noData": true,
+          "normal": false,
+          "error": true
+        },
+        "folder": { "title": "Emlak Alerts" },
+        "alertInstanceLabelFilter": ""
+      }
+    },
+    {
+      "id": 11,
+      "type": "alertlist",
+      "title": "Alert Gecmisi (24 Saat)",
+      "description": "Son 24 saatteki tum alert aktiviteleri",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "options": {
+        "showOptions": "changes",
+        "maxItems": 50,
+        "sortOrder": 5,
+        "dashboardAlerts": false,
+        "stateFilter": {
+          "firing": true,
+          "pending": true,
+          "noData": true,
+          "normal": true,
+          "error": true
+        },
+        "folder": { "title": "Emlak Alerts" }
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "🔥 Endpoint Performance Heatmap",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "collapsed": false
+    },
+    {
+      "id": 13,
+      "type": "heatmap",
+      "title": "API Latency Heatmap",
+      "description": "Endpoint baz\u0131nda yanit suresi dagilimi",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 23 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | histogram_over_time(duration) by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "scaleDistribution": { "type": "log", "log": 2 }
+          }
+        }
+      },
+      "options": {
+        "calculate": true,
+        "calculation": { "xBuckets": { "mode": "size" }, "yBuckets": { "mode": "count", "value": "20" } },
+        "color": {
+          "mode": "scheme",
+          "scheme": "Oranges",
+          "fill": "dark-orange",
+          "scale": "exponential",
+          "exponent": 0.5,
+          "steps": 64
+        },
+        "yAxis": { "unit": "ms", "axisLabel": "Yanit Suresi" },
+        "cellGap": 1,
+        "tooltip": { "show": true, "yHistogram": true },
+        "legend": { "show": true }
+      }
+    },
+    {
+      "id": 14,
+      "type": "table",
+      "title": "En Yavas Endpoint'ler (Top 10)",
+      "description": "Ortalama yanit suresi en yuksek 10 endpoint",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 23 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | avg(duration) by (name)",
+          "limit": 10
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": true
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 200 },
+              { "color": "orange", "value": 500 },
+              { "color": "red", "value": 1000 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "duration" },
+            "properties": [
+              { "id": "unit", "value": "ms" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "duration", "desc": true }],
+        "footer": { "show": false }
+      }
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Endpoint Latency Breakdown",
+      "description": "Kritik endpoint'lerin yanit suresi trendi",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 31 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "health",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name = \"GET /health\" } | avg(duration) by (name)"
+        },
+        {
+          "refId": "valuation",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*\" } | avg(duration) by (name)"
+        },
+        {
+          "refId": "properties",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*properties.*\" } | avg(duration) by (name)"
+        },
+        {
+          "refId": "reports",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*report.*\" } | avg(duration) by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "showPoints": "auto"
+          }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "min"] }
+      }
+    },
+    {
+      "id": 16,
+      "type": "row",
+      "title": "📈 Business Metrics",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+      "collapsed": false
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Toplam Degerleme (Bugun)",
+      "description": "Bugun yapilan degerleme islem sayisi",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 40 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*create.*\" kind = server status = ok } | count() by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 10 },
+              { "color": "super-light-green", "value": 50 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background_solid",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      }
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "Aktif Musteriler (Bugun)",
+      "description": "Bugun API'ye istek gonderen unique kullanici sayisi",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 40 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | count() by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "green", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background_solid",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "PDF Rapor (Bugun)",
+      "description": "Bugun uretilen PDF rapor sayisi",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 40 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*report.*pdf.*\" status = ok } | count() by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "purple", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background_solid",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Eslestirme Sayisi (Bugun)",
+      "description": "Bugun yapilan mulk eslestirme islemleri",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 40 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*match.*\" status = ok } | count() by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "orange", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["sum"] },
+        "colorMode": "background_solid",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Business Metrikleri Trend (7 Gun)",
+      "description": "Degerleme, rapor, eslestirme islem trendleri",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 44 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "valuations",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*create.*\" status = ok } | rate() by (name)"
+        },
+        {
+          "refId": "reports",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*report.*\" status = ok } | rate() by (name)"
+        },
+        {
+          "refId": "matches",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*match.*\" status = ok } | rate() by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 50,
+            "gradientMode": "scheme",
+            "stacking": { "mode": "normal" },
+            "showPoints": "never"
+          }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum", "mean", "max"] }
+      }
+    },
+    {
+      "id": 22,
+      "type": "row",
+      "title": "🖥️ Resource Usage",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 52 },
+      "collapsed": false
+    },
+    {
+      "id": 23,
+      "type": "gauge",
+      "title": "API Request Rate",
+      "description": "Saniyedeki API istek sayisi",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 53 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | rate() by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 1,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "orange", "value": 75 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 24,
+      "type": "gauge",
+      "title": "Error Rate",
+      "description": "Hata orani yuzdesi",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 53 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" status = error } | rate() by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "min": 0,
+          "max": 10,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "orange", "value": 3 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 25,
+      "type": "gauge",
+      "title": "Outbox Pending",
+      "description": "Bekleyen outbox event sayisi",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 53 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*outbox.*pending.*\" } | count() by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "max": 200,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "orange", "value": 100 },
+              { "color": "red", "value": 150 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 26,
+      "type": "gauge",
+      "title": "Celery Queue Size",
+      "description": "Celery kuyrugundaki bekleyen gorev sayisi",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 53 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"emlak-celery\" } | count() by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "orange", "value": 50 },
+              { "color": "red", "value": 75 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 27,
+      "type": "timeseries",
+      "title": "Throughput & Error Trend",
+      "description": "Toplam istek hacmi ve hata trendi",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 59 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "total",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" kind = server } | rate() by (resource.service.name)"
+        },
+        {
+          "refId": "errors",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" status = error kind = server } | rate() by (resource.service.name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "showPoints": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*error.*" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
+              { "id": "custom.fillOpacity", "value": 30 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "sum"] }
+      }
+    },
+    {
+      "id": 28,
+      "type": "timeseries",
+      "title": "Async Processing Health",
+      "description": "Outbox ve Celery isleme oranlar\u0131",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 59 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "outbox",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*outbox.*\" } | rate() by (name)"
+        },
+        {
+          "refId": "celery",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"emlak-celery\" } | rate() by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto"
+          }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
+      }
+    },
+    {
+      "id": 29,
+      "type": "row",
+      "title": "🤖 ML Model Health",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 67 },
+      "collapsed": false
+    },
+    {
+      "id": 30,
+      "type": "stat",
+      "title": "ML Drift PSI Score",
+      "description": "Son drift analizi PSI skoru. Esik: 0.2",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 68 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*drift.*\" }"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "orange", "value": 0.2 },
+              { "color": "red", "value": 0.3 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 31,
+      "type": "stat",
+      "title": "Degerleme Basari Orani",
+      "description": "Basarili / toplam degerleme yuzdesi",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 68 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*\" status = ok } | rate() by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 90 },
+              { "color": "yellow", "value": 95 },
+              { "color": "green", "value": 99 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Degerleme Yanit Suresi Trend",
+      "description": "ML degerleme endpoint p50/p95/p99 trend",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 68 },
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "targets": [
+        {
+          "refId": "p50",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*\" kind = server } | quantile_over_time(duration, 0.5) by (name)"
+        },
+        {
+          "refId": "p95",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*\" kind = server } | quantile_over_time(duration, 0.95) by (name)"
+        },
+        {
+          "refId": "p99",
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"$service\" name =~ \".*valuation.*\" kind = server } | quantile_over_time(duration, 0.99) by (name)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "thresholdsStyle": { "mode": "dashed" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2000 },
+              { "color": "red", "value": 3000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] }
+      }
+    }
+  ]
+}

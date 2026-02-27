@@ -1,0 +1,395 @@
+{
+  "timestamp": "2026-02-21T10:20:16.928970+00:00",
+  "model_version": "v0",
+  "general_metrics": {
+    "rmse": 1315032.3702410888,
+    "mae": 619526.813686964,
+    "median_ae": 316701.7233885776,
+    "r2": 0.9275447010954698,
+    "mape": 0.0993957874919486
+  },
+  "data_info": {
+    "total_samples": 3749,
+    "train_size": 2999,
+    "test_size": 750,
+    "feature_count": 24,
+    "split_ratio": 0.2,
+    "random_state": 42
+  },
+  "district_mape": [
+    {
+      "district": "Catalca",
+      "mape": 0.14773020568603965,
+      "mae": 266792.78237416805,
+      "count": 12,
+      "mean_price": 1709297.3333333333
+    },
+    {
+      "district": "Tuzla",
+      "mape": 0.1297299615253371,
+      "mae": 423226.78499377694,
+      "count": 21,
+      "mean_price": 4139964.6666666665
+    },
+    {
+      "district": "Buyukcekmece",
+      "mape": 0.12741251442606344,
+      "mae": 375597.77340823767,
+      "count": 14,
+      "mean_price": 2751101.714285714
+    },
+    {
+      "district": "Beyoglu",
+      "mape": 0.12139876231124766,
+      "mae": 952995.7601497396,
+      "count": 25,
+      "mean_price": 6441372.52
+    },
+    {
+      "district": "Eyupsultan",
+      "mape": 0.11952771323356988,
+      "mae": 427518.95926551387,
+      "count": 24,
+      "mean_price": 4417479.5
+    },
+    {
+      "district": "Kartal",
+      "mape": 0.11889721291368294,
+      "mae": 677186.8881422633,
+      "count": 12,
+      "mean_price": 5966982.416666667
+    },
+    {
+      "district": "Sariyer",
+      "mape": 0.11720810803262774,
+      "mae": 2600452.508679776,
+      "count": 15,
+      "mean_price": 13582817.466666667
+    },
+    {
+      "district": "Atasehir",
+      "mape": 0.11717757344436294,
+      "mae": 877243.0189541674,
+      "count": 21,
+      "mean_price": 6591799.476190476
+    },
+    {
+      "district": "Sultangazi",
+      "mape": 0.11202164875290772,
+      "mae": 190573.2530999911,
+      "count": 20,
+      "mean_price": 2074973.15
+    },
+    {
+      "district": "Sancaktepe",
+      "mape": 0.10980476422772925,
+      "mae": 385820.45083655993,
+      "count": 23,
+      "mean_price": 3720995.304347826
+    },
+    {
+      "district": "Uskudar",
+      "mape": 0.10963510362218527,
+      "mae": 1306280.458451238,
+      "count": 20,
+      "mean_price": 10657109.3
+    },
+    {
+      "district": "Bayrampasa",
+      "mape": 0.10552158826470107,
+      "mae": 461505.3714533296,
+      "count": 22,
+      "mean_price": 4712278.2272727275
+    },
+    {
+      "district": "Gaziosmanpasa",
+      "mape": 0.10499782489110918,
+      "mae": 343352.1859652756,
+      "count": 16,
+      "mean_price": 3178820.3125
+    },
+    {
+      "district": "Besiktas",
+      "mape": 0.10472340410135333,
+      "mae": 1270011.8385868496,
+      "count": 22,
+      "mean_price": 11235958.727272727
+    },
+    {
+      "district": "Fatih",
+      "mape": 0.10274675425628915,
+      "mae": 743552.419451373,
+      "count": 29,
+      "mean_price": 6435486.724137931
+    },
+    {
+      "district": "Umraniye",
+      "mape": 0.1021960428406529,
+      "mae": 1281204.4901259996,
+      "count": 19,
+      "mean_price": 9145165.421052631
+    },
+    {
+      "district": "Kucukcekmece",
+      "mape": 0.10034673767991109,
+      "mae": 356425.7327841795,
+      "count": 17,
+      "mean_price": 3779689.411764706
+    },
+    {
+      "district": "Bahcelievler",
+      "mape": 0.09882657161153563,
+      "mae": 620210.8043919875,
+      "count": 20,
+      "mean_price": 5654602.45
+    },
+    {
+      "district": "Adalar",
+      "mape": 0.09853936248869061,
+      "mae": 460036.2732297628,
+      "count": 19,
+      "mean_price": 5134935.736842105
+    },
+    {
+      "district": "Silivri",
+      "mape": 0.09822071262785169,
+      "mae": 192675.48638816705,
+      "count": 20,
+      "mean_price": 2040374.1
+    },
+    {
+      "district": "Avcilar",
+      "mape": 0.09784415473592596,
+      "mae": 428365.9168439337,
+      "count": 24,
+      "mean_price": 3386786.6666666665
+    },
+    {
+      "district": "Sisli",
+      "mape": 0.09750410727498052,
+      "mae": 950875.1565784406,
+      "count": 29,
+      "mean_price": 9763286.172413792
+    },
+    {
+      "district": "Basaksehir",
+      "mape": 0.09699829431964929,
+      "mae": 931952.2606654572,
+      "count": 23,
+      "mean_price": 7705456.695652174
+    },
+    {
+      "district": "Maltepe",
+      "mape": 0.09436527479333999,
+      "mae": 797354.244589275,
+      "count": 17,
+      "mean_price": 8229218.117647059
+    },
+    {
+      "district": "Kadikoy",
+      "mape": 0.09398466987753502,
+      "mae": 1068323.9536915554,
+      "count": 24,
+      "mean_price": 10182999.333333334
+    },
+    {
+      "district": "Beylikduzu",
+      "mape": 0.09388840334808293,
+      "mae": 418519.08600717655,
+      "count": 20,
+      "mean_price": 4099011.75
+    },
+    {
+      "district": "Pendik",
+      "mape": 0.0934908381109448,
+      "mae": 609983.3273893377,
+      "count": 22,
+      "mean_price": 5749260.136363637
+    },
+    {
+      "district": "Bagcilar",
+      "mape": 0.09308556551968841,
+      "mae": 330989.73687124095,
+      "count": 13,
+      "mean_price": 3448035.923076923
+    },
+    {
+      "district": "Beykoz",
+      "mape": 0.0922039901156219,
+      "mae": 544592.941008483,
+      "count": 21,
+      "mean_price": 6517067.571428572
+    },
+    {
+      "district": "Esenler",
+      "mape": 0.087464331857379,
+      "mae": 297943.49714908825,
+      "count": 17,
+      "mean_price": 3486662.117647059
+    },
+    {
+      "district": "Sile",
+      "mape": 0.08144018234604498,
+      "mae": 234333.3037433212,
+      "count": 22,
+      "mean_price": 2537441.409090909
+    },
+    {
+      "district": "Bakirkoy",
+      "mape": 0.0806623053193373,
+      "mae": 841401.2130717431,
+      "count": 16,
+      "mean_price": 10026249.9375
+    },
+    {
+      "district": "Sultanbeyli",
+      "mape": 0.07652419570788192,
+      "mae": 202646.405871146,
+      "count": 25,
+      "mean_price": 2671895.16
+    },
+    {
+      "district": "Zeytinburnu",
+      "mape": 0.07425177634652248,
+      "mae": 374694.4948560219,
+      "count": 24,
+      "mean_price": 5234620.208333333
+    },
+    {
+      "district": "Gungoren",
+      "mape": 0.0738087373908907,
+      "mae": 307673.0184468957,
+      "count": 21,
+      "mean_price": 4289155.19047619
+    },
+    {
+      "district": "Esenyurt",
+      "mape": 0.07174471252485255,
+      "mae": 157122.65842231916,
+      "count": 10,
+      "mean_price": 2436148.2
+    },
+    {
+      "district": "Cekmekoy",
+      "mape": 0.07173680520572304,
+      "mae": 284969.63452007674,
+      "count": 14,
+      "mean_price": 3820350.6428571427
+    },
+    {
+      "district": "Arnavutkoy",
+      "mape": 0.0663848217471619,
+      "mae": 148042.2613707783,
+      "count": 17,
+      "mean_price": 2097258.6470588236
+    }
+  ],
+  "price_range_metrics": [
+    {
+      "range": "0-1M",
+      "count": 12,
+      "mape": 0.16401651457722635,
+      "mae": 133932.4994667188,
+      "rmse": 163702.71567200244,
+      "accuracy_20pct": 0.6666666666666666
+    },
+    {
+      "range": "1-3M",
+      "count": 236,
+      "mape": 0.1003500223224832,
+      "mae": 209794.0858823026,
+      "rmse": 276638.71246865805,
+      "accuracy_20pct": 0.8813559322033898
+    },
+    {
+      "range": "3-5M",
+      "count": 203,
+      "mape": 0.08990520949061437,
+      "mae": 359299.60904950666,
+      "rmse": 448382.88845866796,
+      "accuracy_20pct": 0.9359605911330049
+    },
+    {
+      "range": "5M+",
+      "count": 299,
+      "mape": 0.10249257407804009,
+      "mae": 1139092.6266433077,
+      "rmse": 2034639.4871289604,
+      "accuracy_20pct": 0.8929765886287625
+    }
+  ],
+  "feature_importance_top15": [
+    {
+      "feature": "net_sqm",
+      "importance": 1057
+    },
+    {
+      "feature": "lon",
+      "importance": 907
+    },
+    {
+      "feature": "building_age",
+      "importance": 859
+    },
+    {
+      "feature": "gross_sqm",
+      "importance": 756
+    },
+    {
+      "feature": "lat",
+      "importance": 541
+    },
+    {
+      "feature": "transport_score",
+      "importance": 487
+    },
+    {
+      "feature": "district",
+      "importance": 438
+    },
+    {
+      "feature": "socioeconomic_level",
+      "importance": 397
+    },
+    {
+      "feature": "sqm_ratio",
+      "importance": 372
+    },
+    {
+      "feature": "rooms_per_sqm",
+      "importance": 372
+    },
+    {
+      "feature": "neighborhood",
+      "importance": 365
+    },
+    {
+      "feature": "floor_ratio",
+      "importance": 291
+    },
+    {
+      "feature": "floor",
+      "importance": 269
+    },
+    {
+      "feature": "total_floors",
+      "importance": 227
+    },
+    {
+      "feature": "parking_type",
+      "importance": 170
+    }
+  ],
+  "residual_analysis": {
+    "mean": 33380.27989931378,
+    "median": -42655.3408330041,
+    "std": 1314608.6458318077,
+    "q25": -360268.9524816846,
+    "q75": 284081.61871996766,
+    "min": -6251786.443312187,
+    "max": 19710544.206456997,
+    "pct_within_10": 0.5866666666666667,
+    "pct_within_20": 0.8973333333333333,
+    "pct_within_30": 0.9866666666666667
+  }
+}

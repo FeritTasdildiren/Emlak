@@ -1,0 +1,11 @@
+---
+buttons:
+  - text: 'Ilani Goruntule'
+    url: '{{ url }}'
+---
+Yeni bir ilan eslesmesi bulduk!
+
+{{ property_title }}
+Fiyat: {{ price }} TL
+
+Arama kriterlerinizle eslesen bu ilani incelemek icin asagidaki butona tiklayabilirsiniz.

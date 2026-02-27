@@ -1,0 +1,13 @@
+---
+buttons:
+  - text: 'Tekrar Dene'
+    url: 'https://emlak.com/hesabim/odemeler/tekrar'
+  - text: 'Destek'
+    url: 'https://emlak.com/destek'
+---
+Odeme isleminiz basarisiz oldu.
+
+Tutar: {{ amount }} TL
+Hata: {{ error_reason }}
+
+Lutfen odeme bilgilerinizi kontrol edip tekrar deneyiniz. Sorun devam ederse destek ekibimizle iletisime gecebilirsiniz.
