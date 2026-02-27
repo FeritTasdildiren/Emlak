@@ -33,7 +33,7 @@
 | **Teknoloji Stack** | Next.js 15 + FastAPI + PostgreSQL 17 + PostGIS + Redis + Celery + MinIO + LightGBM + OpenAI GPT-5-mini |
 | **Proje Durumu** | Alpha — Production deploy tamamlandi (petqas.com) |
 | **Son Guncelleme** | 2026-02-28 |
-| **GitHub** | — |
+| **GitHub** | https://github.com/FeritTasdildiren/Emlak |
 | **Domain** | petqas.com (Cloudflare DNS) |
 
 ---
@@ -268,7 +268,7 @@ Nginx `/var/www/petqas/` altindaki dosyalari sunuyor:
 **Lokal Gelistirme:**
 ```bash
 # 1. Repo klonla
-git clone <repo-url> Emlak && cd Emlak
+git clone https://github.com/FeritTasdildiren/Emlak.git Emlak && cd Emlak
 
 # 2. Docker servisleri baslat (DB, Redis, MinIO, Tempo, Grafana)
 docker compose up -d
