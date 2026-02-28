@@ -1,0 +1,55 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0150, 40.9920] },
+      "properties": { "name": "Kadıköy Devlet Hastanesi", "type": "devlet", "address": "Caferağa Mah., Kadıköy" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0540, 40.9910] },
+      "properties": { "name": "Acıbadem Hastanesi", "type": "ozel", "address": "Acıbadem Mah., Kadıköy" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0260, 41.0150] },
+      "properties": { "name": "Üsküdar Devlet Hastanesi", "type": "devlet", "address": "Mimar Sinan Mah., Üsküdar" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.1050, 40.9880] },
+      "properties": { "name": "Medical Park Ataşehir", "type": "ozel", "address": "Ataşehir Bulvarı, Ataşehir" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9940, 41.0400] },
+      "properties": { "name": "Beşiktaş Devlet Hastanesi", "type": "devlet", "address": "Sinanpaşa Mah., Beşiktaş" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9850, 41.0590] },
+      "properties": { "name": "Şişli Etfal Hastanesi", "type": "devlet", "address": "Halaskargazi Cad., Şişli" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9760, 41.0520] },
+      "properties": { "name": "Memorial Şişli", "type": "ozel", "address": "Piyalepaşa Bulvarı, Şişli" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9430, 41.0090] },
+      "properties": { "name": "Haseki Eğitim ve Araştırma Hastanesi", "type": "devlet", "address": "Haseki, Fatih" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0860, 40.9950] },
+      "properties": { "name": "Ümraniye Aile Sağlığı Merkezi", "type": "aile_sagligi", "address": "Ümraniye Merkez" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0360, 40.9870] },
+      "properties": { "name": "Göztepe Eğitim ve Araştırma Hastanesi", "type": "devlet", "address": "Göztepe, Kadıköy" }
+    }
+  ]
+}

@@ -1,0 +1,1277 @@
+{
+  "timestamp": "2026-02-26T19:27:58.861Z",
+  "results": [
+    {
+      "group": "Public",
+      "page": "Anasayfa",
+      "path": "/",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 200,
+      "redirectedTo": null,
+      "pageTitle": "Orkestrator Dashboard",
+      "loadTime": 733,
+      "consoleErrors": [],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [
+        "Document overflow: 471px > viewport 375px (+96px)",
+        "Element overflow: <section#system-status> .card — right: 471px",
+        "Element overflow: <h2> . — right: 454px",
+        "Element overflow: <div#status-grid> .status-grid — right: 454px",
+        "Element overflow: <div> .stat-item — right: 454px",
+        "Element overflow: <span> .stat-label — right: 454px"
+      ],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Login",
+      "path": "/login",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 521,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Register",
+      "path": "/register",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 541,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Dashboard Ana",
+      "path": "/dashboard",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 518,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Valuations",
+      "path": "/valuations",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 507,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Properties",
+      "path": "/properties",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 511,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Customers",
+      "path": "/customers",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 518,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Areas",
+      "path": "/areas",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 513,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Maps",
+      "path": "/maps",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 516,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Listings",
+      "path": "/listings",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 510,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Calculator",
+      "path": "/calculator",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 509,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Network",
+      "path": "/network",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 508,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Messages",
+      "path": "/messages",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 518,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Settings",
+      "path": "/settings",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 512,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG Ana",
+      "path": "/tg",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 521,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG Valuation",
+      "path": "/tg/valuation",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 550,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG CRM",
+      "path": "/tg/crm",
+      "viewport": "Mobile",
+      "resolution": "375x812",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 512,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Anasayfa",
+      "path": "/",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 200,
+      "redirectedTo": null,
+      "pageTitle": "Orkestrator Dashboard",
+      "loadTime": 699,
+      "consoleErrors": [],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Login",
+      "path": "/login",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 506,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Register",
+      "path": "/register",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 508,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Dashboard Ana",
+      "path": "/dashboard",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 514,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Valuations",
+      "path": "/valuations",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 508,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Properties",
+      "path": "/properties",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 517,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Customers",
+      "path": "/customers",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 516,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Areas",
+      "path": "/areas",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 515,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Maps",
+      "path": "/maps",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 512,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Listings",
+      "path": "/listings",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 520,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Calculator",
+      "path": "/calculator",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 507,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Network",
+      "path": "/network",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 510,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Messages",
+      "path": "/messages",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 508,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Settings",
+      "path": "/settings",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 624,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG Ana",
+      "path": "/tg",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 524,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG Valuation",
+      "path": "/tg/valuation",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 513,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG CRM",
+      "path": "/tg/crm",
+      "viewport": "Tablet",
+      "resolution": "768x1024",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 511,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Anasayfa",
+      "path": "/",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 200,
+      "redirectedTo": null,
+      "pageTitle": "Orkestrator Dashboard",
+      "loadTime": 775,
+      "consoleErrors": [],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Login",
+      "path": "/login",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 515,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Public",
+      "page": "Register",
+      "path": "/register",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 511,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Dashboard Ana",
+      "path": "/dashboard",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 518,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Valuations",
+      "path": "/valuations",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 506,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Properties",
+      "path": "/properties",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 509,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Customers",
+      "path": "/customers",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 512,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Areas",
+      "path": "/areas",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 512,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Maps",
+      "path": "/maps",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 515,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Listings",
+      "path": "/listings",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 513,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Calculator",
+      "path": "/calculator",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 532,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Network",
+      "path": "/network",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 517,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Messages",
+      "path": "/messages",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 508,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Dashboard",
+      "page": "Settings",
+      "path": "/settings",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 511,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG Ana",
+      "path": "/tg",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 510,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG Valuation",
+      "path": "/tg/valuation",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 507,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    },
+    {
+      "group": "Telegram",
+      "page": "TG CRM",
+      "path": "/tg/crm",
+      "viewport": "Desktop",
+      "resolution": "1440x900",
+      "httpStatus": 404,
+      "redirectedTo": null,
+      "pageTitle": "Error",
+      "loadTime": 519,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "hydrationErrors": [],
+      "consoleWarnings": [],
+      "overflowIssues": [],
+      "brokenImages": [],
+      "linkCount": 0
+    }
+  ],
+  "allLinks": [],
+  "consoleErrorSummary": [
+    {
+      "page": "Login (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Register (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Dashboard Ana (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Valuations (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Properties (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Customers (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Areas (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Maps (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Listings (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Calculator (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Network (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Messages (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Settings (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG Ana (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG Valuation (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG CRM (Mobile)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Login (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Register (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Dashboard Ana (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Valuations (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Properties (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Customers (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Areas (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Maps (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Listings (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Calculator (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Network (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Messages (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Settings (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG Ana (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG Valuation (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG CRM (Tablet)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Login (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Register (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Dashboard Ana (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Valuations (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Properties (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Customers (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Areas (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Maps (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Listings (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Calculator (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Network (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Messages (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "Settings (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG Ana (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG Valuation (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "page": "TG CRM (Desktop)",
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    }
+  ],
+  "summary": {
+    "totalTests": 51,
+    "passed": 2,
+    "httpErrors": 48,
+    "redirects": 0,
+    "withConsoleErrors": 48,
+    "withOverflow": 1,
+    "withBrokenImages": 0,
+    "withHydrationErrors": 0,
+    "totalLinks": 0
+  }
+}

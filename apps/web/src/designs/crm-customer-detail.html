@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Müşteri Detay - CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4f46e5', // Indigo 600
+                        success: '#10b981', // Emerald 500
+                        error: '#ef4444',   // Red 500
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full antialiased text-gray-900">
+
+    <!-- Mobile Header -->
+    <div class="lg:hidden flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <button class="text-gray-500 hover:text-gray-700">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <span class="font-bold text-lg text-primary">EmlakCRM</span>
+        </div>
+        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-primary font-bold text-sm">FA</div>
+    </div>
+
+    <div class="flex h-full">
+        <!-- Sidebar (Desktop) -->
+        <aside class="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 fixed inset-y-0 left-0 z-20">
+            <div class="h-16 flex items-center px-6 border-b border-gray-200">
+                <span class="font-bold text-xl text-primary">EmlakCRM</span>
+            </div>
+            
+            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    Dashboard
+                </a>
+                <a href="crm-customer-list.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-primary bg-indigo-50 rounded-md">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    Müşteriler
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    Portföy
+                </a>
+                <a href="crm-match-list.html" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                    <i data-lucide="git-branch" class="w-5 h-5"></i>
+                    Eşleşmeler
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:pl-64 min-h-screen flex flex-col">
+            <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-5xl mx-auto space-y-6">
+                
+                <!-- Breadcrumb -->
+                <nav class="flex" aria-label="Breadcrumb">
+                    <ol class="flex items-center space-x-2">
+                        <li><a href="crm-customer-list.html" class="text-gray-400 hover:text-gray-500"><i data-lucide="users" class="h-4 w-4"></i></a></li>
+                        <li><span class="text-gray-300">/</span></li>
+                        <li><span class="text-sm font-medium text-gray-500">Müşteriler</span></li>
+                        <li><span class="text-gray-300">/</span></li>
+                        <li><span class="text-sm font-medium text-gray-900">Ahmet Yılmaz</span></li>
+                    </ol>
+                </nav>
+
+                <!-- Customer Header Card -->
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="p-6">
+                        <div class="sm:flex sm:items-center sm:justify-between">
+                            <div class="sm:flex sm:items-center">
+                                <div class="mb-4 sm:mb-0 sm:mr-6">
+                                    <div class="h-20 w-20 rounded-full bg-indigo-100 flex items-center justify-center text-primary text-2xl font-bold border-4 border-white shadow-sm">
+                                        AY
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 class="text-2xl font-bold text-gray-900">Ahmet Yılmaz</h1>
+                                    <div class="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
+                                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                                            <i data-lucide="phone" class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            0532 123 45 67
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                                            <i data-lucide="mail" class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            ahmet.yilmaz@email.com
+                                        </div>
+                                        <div class="mt-2 flex items-center text-sm text-gray-500">
+                                            <i data-lucide="calendar" class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"></i>
+                                            Son iletişim: 2 saat önce
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-5 flex justify-center sm:mt-0">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mr-4">
+                                    Hot Lead
+                                </span>
+                                <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                    <i data-lucide="pencil" class="h-4 w-4 mr-2"></i>
+                                    Düzenle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Tags Footer -->
+                    <div class="bg-gray-50 px-6 py-3 flex flex-wrap gap-2 border-t border-gray-200">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white border border-gray-300 text-gray-700">
+                            Yatırımcı
+                        </span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white border border-gray-300 text-gray-700">
+                            Nakit
+                        </span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white border border-gray-300 text-gray-700">
+                            Acil
+                        </span>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <i data-lucide="plus-circle" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="bg-white shadow rounded-lg min-h-[500px]">
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                            <button onclick="switchTab('info')" id="tab-btn-info" class="border-primary text-primary whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
+                                <i data-lucide="user" class="h-4 w-4"></i> Bilgiler
+                            </button>
+                            <button onclick="switchTab('notes')" id="tab-btn-notes" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
+                                <i data-lucide="file-text" class="h-4 w-4"></i> Notlar
+                                <span class="bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs ml-1">3</span>
+                            </button>
+                            <button onclick="switchTab('matches')" id="tab-btn-matches" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
+                                <i data-lucide="home" class="h-4 w-4"></i> Eşleşmeler
+                                <span class="bg-indigo-100 text-primary py-0.5 px-2 rounded-full text-xs ml-1">5</span>
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div class="p-6">
+                        
+                        <!-- Info Tab -->
+                        <div id="tab-info" class="space-y-8">
+                            <div>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 border-b border-gray-200 pb-2 mb-4">Müşteri Tercihleri</h3>
+                                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Müşteri Tipi</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded">Alıcı</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Kaynak</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded">Sahibinden.com</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Bütçe Aralığı</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded">2.500.000 TL - 3.200.000 TL</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Tercih Edilen Oda</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded">2+1 veya 3+1</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">M² Aralığı</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded">Min 90 m²</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Danışman</dt>
+                                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-2 rounded">Ferit Ahmet</dd>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 border-b border-gray-200 pb-2 mb-4">Lokasyon Tercihleri</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-indigo-50 text-primary border border-indigo-100">
+                                        İstanbul / Kadıköy / Caferağa
+                                    </span>
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-indigo-50 text-primary border border-indigo-100">
+                                        İstanbul / Kadıköy / Moda
+                                    </span>
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-indigo-50 text-primary border border-indigo-100">
+                                        İstanbul / Üsküdar / Merkez
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes Tab -->
+                        <div id="tab-notes" class="hidden">
+                            <div class="flow-root">
+                                <ul role="list" class="-mb-8">
+                                    
+                                    <!-- Note Input -->
+                                    <li class="mb-8">
+                                        <div class="flex gap-3">
+                                            <div class="flex-shrink-0">
+                                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-primary font-bold text-sm">FA</div>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <form action="#">
+                                                    <div>
+                                                        <label for="comment" class="sr-only">Notunuz</label>
+                                                        <textarea id="comment" name="comment" rows="3" class="shadow-sm block w-full focus:ring-primary focus:border-primary sm:text-sm border border-gray-300 rounded-md p-2" placeholder="Yeni bir not ekle..."></textarea>
+                                                    </div>
+                                                    <div class="mt-3 flex items-center justify-end">
+                                                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                                            Not Ekle
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <!-- Timeline Item 1 -->
+                                    <li>
+                                        <div class="relative pb-8">
+                                            <span class="absolute top-4 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                            <div class="relative flex space-x-3">
+                                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center ring-8 ring-white">
+                                                    <span class="text-gray-500 font-medium text-xs">SYS</span>
+                                                </div>
+                                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                    <div>
+                                                        <p class="text-sm text-gray-500"><span class="font-medium text-gray-900">Sistem</span> müşteri kaydını oluşturdu.</p>
+                                                    </div>
+                                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                                        <time datetime="2020-09-20">2 gün önce</time>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <!-- Timeline Item 2 -->
+                                    <li>
+                                        <div class="relative pb-8">
+                                            <span class="absolute top-4 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                            <div class="relative flex space-x-3">
+                                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center ring-8 ring-white">
+                                                    <span class="text-primary font-medium text-xs">FA</span>
+                                                </div>
+                                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                    <div>
+                                                        <p class="text-sm text-gray-500"><span class="font-medium text-gray-900">Ferit Ahmet</span> telefon görüşmesi yaptı.</p>
+                                                        <div class="mt-2 text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-100">
+                                                            <p>Müşteri ile görüşüldü. Kadıköy bölgesinde yatırımlık 2+1 arıyor. Bütçesi esnek, 3.2M'e kadar çıkabilir. Nakit ödeme yapacak.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                                        <time datetime="2020-09-22">Dün</time>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                     <!-- Timeline Item 3 -->
+                                     <li>
+                                        <div class="relative pb-8">
+                                            <div class="relative flex space-x-3">
+                                                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center ring-8 ring-white">
+                                                    <span class="text-primary font-medium text-xs">FA</span>
+                                                </div>
+                                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                    <div>
+                                                        <p class="text-sm text-gray-500"><span class="font-medium text-gray-900">Ferit Ahmet</span> statüyü güncelledi: <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Hot Lead</span></p>
+                                                    </div>
+                                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                                        <time datetime="2020-09-22">2 saat önce</time>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Matches Tab -->
+                        <div id="tab-matches" class="hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                
+                                <!-- Match Card 1 -->
+                                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                                    <div class="aspect-w-16 aspect-h-9 bg-gray-200 relative h-48">
+                                        <!-- Placeholder Image -->
+                                        <div class="absolute inset-0 flex items-center justify-center text-gray-400">
+                                            <i data-lucide="image" class="h-12 w-12"></i>
+                                        </div>
+                                        <div class="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-bold text-gray-800">
+                                            Satılık
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h4 class="font-bold text-gray-900 truncate">Kadıköy Moda 2+1</h4>
+                                                <p class="text-sm text-gray-500">Caferağa Mah, Kadıköy</p>
+                                            </div>
+                                            <span class="text-lg font-bold text-primary">2.850.000₺</span>
+                                        </div>
+                                        
+                                        <!-- Match Score -->
+                                        <div class="mt-4 mb-4">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-xs font-medium text-gray-700">Uyum Skoru</span>
+                                                <span class="text-xs font-bold text-success">92%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-success h-2 rounded-full" style="width: 92%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex gap-2 mt-4">
+                                            <button class="flex-1 bg-success text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2">
+                                                <i data-lucide="check" class="h-4 w-4"></i> Öner
+                                            </button>
+                                            <button class="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                                                <i data-lucide="x" class="h-4 w-4"></i> Geç
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                 <!-- Match Card 2 -->
+                                 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                                    <div class="aspect-w-16 aspect-h-9 bg-gray-200 relative h-48">
+                                        <!-- Placeholder Image -->
+                                        <div class="absolute inset-0 flex items-center justify-center text-gray-400">
+                                            <i data-lucide="image" class="h-12 w-12"></i>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h4 class="font-bold text-gray-900 truncate">Üsküdar Merkez 3+1</h4>
+                                                <p class="text-sm text-gray-500">Mimar Sinan Mah, Üsküdar</p>
+                                            </div>
+                                            <span class="text-lg font-bold text-primary">3.100.000₺</span>
+                                        </div>
+                                        
+                                        <!-- Match Score -->
+                                        <div class="mt-4 mb-4">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-xs font-medium text-gray-700">Uyum Skoru</span>
+                                                <span class="text-xs font-bold text-yellow-600">75%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-yellow-500 h-2 rounded-full" style="width: 75%"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex gap-2 mt-4">
+                                            <button class="flex-1 bg-success text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2">
+                                                <i data-lucide="check" class="h-4 w-4"></i> Öner
+                                            </button>
+                                            <button class="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                                                <i data-lucide="x" class="h-4 w-4"></i> Geç
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.getElementById('tab-info').classList.add('hidden');
+            document.getElementById('tab-notes').classList.add('hidden');
+            document.getElementById('tab-matches').classList.add('hidden');
+            
+            // Reset all buttons
+            const buttons = ['info', 'notes', 'matches'];
+            buttons.forEach(btn => {
+                const el = document.getElementById('tab-btn-' + btn);
+                el.classList.remove('border-primary', 'text-primary');
+                el.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+            // Highlight selected button
+            const activeBtn = document.getElementById('tab-btn-' + tabName);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            activeBtn.classList.add('border-primary', 'text-primary');
+        }
+    </script>
+</body>
+</html>

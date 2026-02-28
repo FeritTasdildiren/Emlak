@@ -1,0 +1,105 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0235, 40.9903] },
+      "properties": { "name": "Kadıköy", "line": "M4", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0460, 40.9830] },
+      "properties": { "name": "Ayrılık Çeşmesi", "line": "M4", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0570, 40.9790] },
+      "properties": { "name": "Acıbadem", "line": "M4", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0710, 40.9755] },
+      "properties": { "name": "Ünalan", "line": "M4", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0920, 40.9780] },
+      "properties": { "name": "Göztepe", "line": "M4", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.1050, 40.9700] },
+      "properties": { "name": "Yenisahra", "line": "M4", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.1190, 40.9670] },
+      "properties": { "name": "Kozyatağı", "line": "M4", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0330, 41.0260] },
+      "properties": { "name": "Üsküdar", "line": "M5", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0400, 41.0185] },
+      "properties": { "name": "Fıstıkağacı", "line": "M5", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0530, 41.0120] },
+      "properties": { "name": "Bağlarbaşı", "line": "M5", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0640, 41.0050] },
+      "properties": { "name": "Altunizade", "line": "M5", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0870, 40.9980] },
+      "properties": { "name": "Ataşehir", "line": "M5", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.1060, 40.9930] },
+      "properties": { "name": "Ümraniye", "line": "M5", "type": "metro" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0160, 40.9900] },
+      "properties": { "name": "Kadıköy Metrobüs", "line": "Metrobüs", "type": "metrobus" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0680, 40.9740] },
+      "properties": { "name": "Uzunçayır Metrobüs", "line": "Metrobüs", "type": "metrobus" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.1000, 40.9690] },
+      "properties": { "name": "Kozyatağı Metrobüs", "line": "Metrobüs", "type": "metrobus" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9490, 41.0120] },
+      "properties": { "name": "Sultanahmet Tramvay", "line": "T1", "type": "tramvay" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9700, 41.0275] },
+      "properties": { "name": "Karaköy Tramvay", "line": "T1", "type": "tramvay" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9770, 41.0370] },
+      "properties": { "name": "Kabataş Tramvay", "line": "T1", "type": "tramvay" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9510, 41.0430] },
+      "properties": { "name": "Taksim Metro", "line": "M2", "type": "metro" }
+    }
+  ]
+}

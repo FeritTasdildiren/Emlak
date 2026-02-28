@@ -1,0 +1,80 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0244, 40.9883] },
+      "properties": { "name": "Kadıköy Anadolu Lisesi", "type": "lise", "address": "Caferağa Mah., Kadıköy" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0155, 40.9925] },
+      "properties": { "name": "Kadıköy İlkokulu", "type": "ilkokul", "address": "Osmanağa Mah., Kadıköy" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0340, 41.0010] },
+      "properties": { "name": "Üsküdar Anadolu Lisesi", "type": "lise", "address": "Altunizade Mah., Üsküdar" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0280, 41.0055] },
+      "properties": { "name": "Üsküdar Ortaokulu", "type": "ortaokul", "address": "Selimiye Mah., Üsküdar" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.1010, 40.9870] },
+      "properties": { "name": "Ataşehir İlkokulu", "type": "ilkokul", "address": "Barbaros Mah., Ataşehir" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.1120, 40.9940] },
+      "properties": { "name": "Ataşehir Anadolu Lisesi", "type": "lise", "address": "Küçükbakkalköy Mah., Ataşehir" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0074, 41.0430] },
+      "properties": { "name": "Beşiktaş Anadolu Lisesi", "type": "lise", "address": "Sinanpaşa Mah., Beşiktaş" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0020, 41.0460] },
+      "properties": { "name": "Beşiktaş İlkokulu", "type": "ilkokul", "address": "Cihannüma Mah., Beşiktaş" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9870, 41.0580] },
+      "properties": { "name": "Şişli Ortaokulu", "type": "ortaokul", "address": "Merkez Mah., Şişli" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9920, 41.0620] },
+      "properties": { "name": "Şişli Anadolu Lisesi", "type": "lise", "address": "Halaskargazi Cad., Şişli" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0450, 41.0830] },
+      "properties": { "name": "Boğaziçi Üniversitesi", "type": "universite", "address": "Bebek Mah., Beşiktaş" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9555, 41.0130] },
+      "properties": { "name": "İstanbul Üniversitesi", "type": "universite", "address": "Beyazıt Meydanı, Fatih" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0190, 40.9860] },
+      "properties": { "name": "Marmara Üniversitesi Göztepe", "type": "universite", "address": "Göztepe Kampüsü, Kadıköy" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [29.0580, 40.9950] },
+      "properties": { "name": "Acıbadem Ortaokulu", "type": "ortaokul", "address": "Acıbadem Mah., Kadıköy" }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [28.9780, 41.0510] },
+      "properties": { "name": "Galatasaray Lisesi", "type": "lise", "address": "İstiklal Cad., Beyoğlu" }
+    }
+  ]
+}
