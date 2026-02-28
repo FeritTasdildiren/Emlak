@@ -177,7 +177,7 @@ Bu CLAUDE.md dosyasi canli bir dokumandir. Asagidaki degisikliklerde guncellenir
 | 1 | 3 kirik sidebar link: /dashboard (→ /), /valuation (→ /valuations), /credit (→ /calculator) | ORTA | Acik |
 | 2 | test_s5_valuation_functional.py:213 Python 3.14 syntax hatasi (annotations) | DUSUK | Acik |
 | 3 | /maps sayfasi 431KB (maplibre-gl chunk ~278KB) | DUSUK | Kabul edildi |
-| 4 | Frontend API hook'lari mock data donuyor — gercek API'ye baglanmali | YUKSEK | Acik |
+| 4 | Frontend API hook'lari mock data donuyor — gercek API'ye baglanmali | YUKSEK | 11 hook/modul tamamlandi (customers, properties, valuations, showcases, calculator, customer-detail, search, listings, showcase-public-api, showcase-form+edit, maps). Kalan mock: showcase-form.tsx ve lib/api/showcases.ts properties.ts kullaniyor |
 | 5 | Quantile regression guven araligi coverage %57.6 (hedef %80) — model v2'de iyilestirme | ORTA | Gelecek sprint |
 | 6 | WeasyPrint Docker disinda kirik olabilir (font bagimliligi) | DUSUK | Sunucuda OK |
 | 7 | ruff 82 uyari (N806 ML degisken, TC* type checking) — kritik degil | DUSUK | Kabul edildi |
@@ -792,7 +792,7 @@ SELECT current_setting('app.current_user_role', true);
 
 **Oncelikli Yapilaciaklar (Alpha → Beta gecisi icin):**
 
-1. **Frontend API Entegrasyonu (YUKSEK):** Hook'lar simdilik mock data donuyor. React Query hook'larini gercek API'ye bagla. Ornek: `useProperties` → `GET /api/v1/properties`, `useCustomers` → `GET /api/v1/customers`
+1. **Frontend API Entegrasyonu (KISMI TAMAMLANDI):** 10 hook/modul gercek API'ye baglandi: `useCustomers` → `/customers`, `useProperties` → `/properties/search`, `submitValuation/getValuations` → `/valuations`, `useShowcases/useSharedShowcases` → `/showcases`, `useCalculator` → `/calculator/rates`, `useCustomerDetail` → `/customers/{id}` + `/customers/{id}/notes` + `/matches`, `usePropertySearch/useSearchSuggestions` → `/properties/search` + `/properties/search/suggestions`, `listingsApi` → `/listings/tones` + `/listings/generate-text` + `/listings/regenerate-text` + `/listings/staging-styles` + `/listings/virtual-stage` + `/listings/analyze-room` + `/listings/export`, `fetchShowcaseBySlug/incrementShowcaseViews` → `/showcases/public/{slug}` + `/showcases/public/{slug}/view`, `showcase-form` → `/properties/search` + `/showcases` CRUD, `network/[id]/edit` → `useShowcaseDetail`. Kalan mock: `maps/page.tsx`
 2. **3 Kirik Sidebar Link (ORTA):** `/dashboard` → `/`, `/valuation` → `/valuations`, `/credit` → `/calculator` path duzeltmesi
 3. **Quantile Regression Iyilestirme (ORTA):** Coverage %57.6 → %80 hedefi. Model v2'de conformal prediction veya daha genis quantile araligi denenebilir
 4. **WhatsApp Cloud API Entegrasyonu (Beta):** Elite plan icin BSP (360dialog) entegrasyonu. Mevcut click-to-chat Starter/Pro icin yeterli
