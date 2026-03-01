@@ -241,18 +241,24 @@ export const listingsApi = {
 // ----------------------------------------------------------------
 
 /** Frontend ListingFormData → Backend ListingTextRequest body */
-function mapFormDataToBackend(data: ListingFormData): Record<string, unknown> {
+function mapFormDataToBackend(data: ListingFormData & { property_id?: string }): Record<string, unknown> {
   return {
+    property_id: data.property_id,
     property_type: data.propertyType,
     district: data.district,
     neighborhood: data.neighborhood ?? data.district,
     net_sqm: data.netSqm ?? data.grossSqm,
     room_count: data.roomCount ?? "3+1",
-    price: 0, // Frontend formda price yok — backend zorunlu, 0 fallback
+    bathroom_count: data.bathroomCount || undefined,
+    price: data.price,
     gross_sqm: data.grossSqm > 0 ? data.grossSqm : undefined,
     floor: data.floor ?? undefined,
     total_floors: data.totalFloors ?? undefined,
     building_age: data.buildingAge ?? undefined,
+    floor_info: data.floorInfo || undefined,
+    heating_type: data.heatingType || undefined,
+    furniture_status: data.furnitureStatus || undefined,
+    facade: data.facade || undefined,
     has_elevator: data.features.elevator || undefined,
     has_parking: data.features.parking || undefined,
     has_balcony: data.features.balcony || undefined,

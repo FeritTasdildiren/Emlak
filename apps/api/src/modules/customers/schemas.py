@@ -73,6 +73,24 @@ class CustomerCreate(BaseModel):
         description="Danışman notları",
     )
 
+    # Demografik bilgiler
+    gender: str | None = Field(
+        default=None, max_length=10,
+        description="Cinsiyet: erkek, kadin, belirtilmemis",
+    )
+    age_range: str | None = Field(
+        default=None, max_length=10,
+        description="Yaş aralığı: 18-25, 26-35, 36-45, 46-55, 56-65, 65+",
+    )
+    profession: str | None = Field(
+        default=None, max_length=50,
+        description="Meslek",
+    )
+    family_size: int | None = Field(
+        default=None, ge=1, le=10,
+        description="Aile büyüklüğü",
+    )
+
 
 class CustomerUpdate(BaseModel):
     """Müşteri güncelleme isteği. Sadece gönderilen alanlar güncellenir."""
@@ -122,6 +140,24 @@ class CustomerUpdate(BaseModel):
         description="Danışman notları",
     )
 
+    # Demografik bilgiler
+    gender: str | None = Field(
+        default=None, max_length=10,
+        description="Cinsiyet: erkek, kadin, belirtilmemis",
+    )
+    age_range: str | None = Field(
+        default=None, max_length=10,
+        description="Yaş aralığı: 18-25, 26-35, 36-45, 46-55, 56-65, 65+",
+    )
+    profession: str | None = Field(
+        default=None, max_length=50,
+        description="Meslek",
+    )
+    family_size: int | None = Field(
+        default=None, ge=1, le=10,
+        description="Aile büyüklüğü",
+    )
+
 
 class LeadStatusUpdate(BaseModel):
     """Lead status güncelleme isteği."""
@@ -155,6 +191,10 @@ class CustomerResponse(BaseModel):
     tags: list[str] = Field(default_factory=list, description="Müşteri etiketleri")
     lead_status: str = Field(description="Lead durumu")
     source: str | None = Field(default=None, description="Müşteri kaynağı")
+    gender: str | None = Field(default=None, description="Cinsiyet")
+    age_range: str | None = Field(default=None, description="Yaş aralığı")
+    profession: str | None = Field(default=None, description="Meslek")
+    family_size: int | None = Field(default=None, description="Aile büyüklüğü")
     last_contact_at: datetime | None = Field(default=None, description="Son iletişim zamanı")
     created_at: datetime = Field(description="Oluşturulma zamanı")
     updated_at: datetime = Field(description="Son güncelleme zamanı")

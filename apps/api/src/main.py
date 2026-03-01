@@ -36,6 +36,7 @@ from src.listings.portal_export_router import router as portal_export_router
 from src.listings.staging_router import router as staging_router
 from src.middleware.request_id import RequestIdMiddleware
 from src.middleware.tenant import TenantMiddleware
+from src.modules.admin.bank_rates_router import router as admin_bank_rates_router
 from src.modules.admin.dlq_router import router as admin_dlq_router
 from src.modules.admin.outbox_monitor_router import router as admin_outbox_router
 from src.modules.admin.refresh_alerts import router as admin_refresh_router
@@ -248,6 +249,7 @@ app.include_router(telegram_link_router)
 app.include_router(admin_outbox_router)
 app.include_router(admin_dlq_router)
 app.include_router(admin_refresh_router)
+app.include_router(admin_bank_rates_router)
 app.include_router(drift_router)
 
 # --- Audit Router (JWT + platform_admin GEREKTiRiR — KVKK denetim kayitlari) ---

@@ -52,7 +52,7 @@
 | Veritabani | PostgreSQL 17.7 + PostGIS | RLS multi-tenant izolasyon, GEOGRAPHY, FTS, pg_trgm |
 | Migration | Alembic | 21 migration (001→021), otomatik revision chain |
 | Cache/Queue | Redis 7 (DB 0=cache, DB 1=broker, DB 2=result) | Celery broker, JWT blacklist, wizard state, cache |
-| Task Queue | Celery 5.4 + Beat | 8 periyodik gorev, 3 kuyruk (default, outbox, notifications) |
+| Task Queue | Celery 5.4 + Beat | 9 periyodik gorev, 3 kuyruk (default, outbox, notifications) |
 | Object Storage | MinIO (S3 uyumlu) | Fotograf upload, PDF depolama |
 | ML | LightGBM 4.6 + scikit-learn + Optuna | Gayrimenkul degerleme modeli v1 (MAPE %9.35) |
 | AI | OpenAI GPT-5-mini | Ilan metni uretimi, virtual staging, oda analizi |
@@ -207,7 +207,7 @@ Bu CLAUDE.md dosyasi canli bir dokumandir. Asagidaki degisikliklerde guncellenir
 | FastAPI | petqas-api | 3003 | Uvicorn, 2 worker |
 | Next.js | petqas-web | 3004 | SSR production |
 | Celery Worker | petqas-celery-worker | — | 3 kuyruk, concurrency=2 |
-| Celery Beat | petqas-celery-beat | — | 8 periyodik gorev |
+| Celery Beat | petqas-celery-beat | — | 9 periyodik gorev |
 
 **PM2 komutlari:**
 ```bash
@@ -417,8 +417,8 @@ alembic current
 alembic history
 ```
 
-**Migration Zinciri (001 → 021):**
-001=initial_schema, 002=rls_policies, 003=app_user_role, 004=payment_table, 005=outbox_inbox, 006=payment_timeline, 007=notifications, 008=telegram_chat_id, 009=area_deprem_price, 010=valuation_scraped, 011=fts_trigger, 012=model_registry, 013=turkish_search, 014=usage_quotas, 015=demographics, 016=customer_match, 017=customer_notes, 018=quota_expand, 019=showcase, 020=performance_indexes, 021=transaction_audit_log
+**Migration Zinciri (001 → 024):**
+001=initial_schema, 002=rls_policies, 003=app_user_role, 004=payment_table, 005=outbox_inbox, 006=payment_timeline, 007=notifications, 008=telegram_chat_id, 009=area_deprem_price, 010=valuation_scraped, 011=fts_trigger, 012=model_registry, 013=turkish_search, 014=usage_quotas, 015=demographics, 016=customer_match, 017=customer_notes, 018=quota_expand, 019=showcase, 020=performance_indexes, 021=transaction_audit_log, 022=property_form_standardization, 023=customer_demographics, 024=bank_rates_table
 
 #### Seed Data
 ```bash
@@ -429,7 +429,8 @@ python -m src.scripts.seed_pilot_data
 python -m src.scripts.seed_demographics
 
 # Kredi hesaplayici banka faiz oranlari (6 banka)
-# → src/modules/calculator/bank_rates.py icerisinde hardcoded seed
+# → migration 024_bank_rates_table ile DB'ye seed edilir (6 banka)
+# → src/modules/calculator/bank_rates.py'de DEFAULT_BANK_RATES fallback olarak korunur
 ```
 
 ### 5. Servisleri Calistirma
@@ -484,7 +485,7 @@ cd apps/web && pnpm build && pm2 restart petqas-web
 **Swagger UI:** https://petqas.com/api/docs
 **OpenAPI JSON:** https://petqas.com/api/openapi.json
 
-#### Endpoint Ozeti (100 endpoint, 18 modul)
+#### Endpoint Ozeti (103 endpoint, 18 modul)
 
 | Modul | Prefix | Endpoint Sayisi | Auth | Aciklama |
 |-------|--------|----------------|------|----------|
@@ -504,7 +505,7 @@ cd apps/web && pnpm build && pm2 restart petqas-web
 | listings | /api/v1/listings | 9 | Karma | Ilan metni uretimi + staging + foto + export + tones/portals (public) |
 | payments | /api/v1/payments | 2 | JWT | Odeme olustur + webhook |
 | telegram | /webhooks/telegram | 2 | Webhook Secret | Bot webhook + mini app auth |
-| admin | /api/v1/admin | 8 | JWT+admin | Outbox monitor + DLQ + refresh alerts + drift |
+| admin | /api/v1/admin | 11 | JWT+admin | Outbox monitor + DLQ + refresh alerts + drift + bank-rates (GET/PUT/PUT bulk) |
 | audit | /api/v1/audit | 3 | JWT+admin | KVKK audit log listele + detay |
 | realtime | /ws | 1 | JWT (query) | WebSocket stub (echo+heartbeat) |
 | health | /health | 4 | Yok | health, db, pdf, ready |

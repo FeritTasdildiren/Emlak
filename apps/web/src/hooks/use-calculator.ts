@@ -262,6 +262,7 @@ export function useCalculator() {
     isCalculating,
     isLoadingRates,
     ratesError,
+    bankRates,
     calculate,
     reset,
   };

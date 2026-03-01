@@ -1,13 +1,29 @@
-"""Banka konut kredisi faiz oranlari — seed data."""
+"""Banka konut kredisi faiz oranlari — DB + fallback seed data.
+
+Birincil kaynak: bank_rates DB tablosu (migration 024 ile olusturulur).
+Fallback: DEFAULT_BANK_RATES listesi (DB erisilemezse graceful degradation).
+
+Referans: TASK-193
+"""
 
 from __future__ import annotations
 
 from datetime import UTC, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
+import structlog
+from sqlalchemy import select
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.models.bank_rate import BankRate as BankRateModel
 from src.modules.calculator.calculator_schemas import BankRate
 
-# Son guncelleme tarihi (seed)
+logger = structlog.get_logger()
+
+# Son guncelleme tarihi (seed fallback)
 _LAST_UPDATED = datetime(2025, 2, 1, tzinfo=UTC)
 
 DEFAULT_BANK_RATES: list[BankRate] = [
@@ -68,11 +84,42 @@ DEFAULT_BANK_RATES: list[BankRate] = [
 ]
 
 
-def get_bank_rates() -> list[BankRate]:
-    """Mevcut banka faiz oranlarini dondurur.
+async def get_bank_rates_from_db(session: AsyncSession) -> list[BankRate]:
+    """DB'den aktif banka faiz oranlarini getirir.
 
-    Simdilik sabit seed data kullanilir.
-    Ileride DB veya dis API'den cekilebilir.
+    Async session ile calisir (FastAPI endpoint'leri icin).
+    Hata durumunda DEFAULT_BANK_RATES'e fallback yapar.
+
+    Args:
+        session: SQLAlchemy async session.
+
+    Returns:
+        Aktif banka faiz oranlari listesi (faiz oranina gore artan sirali).
+    """
+    try:
+        stmt = (
+            select(BankRateModel)
+            .where(BankRateModel.is_active.is_(True))
+            .order_by(BankRateModel.annual_rate.asc())
+        )
+        result = await session.execute(stmt)
+        rows = result.scalars().all()
+
+        if not rows:
+            logger.warning("bank_rates_db_empty", fallback="DEFAULT_BANK_RATES")
+            return list(DEFAULT_BANK_RATES)
+
+        return [BankRate.model_validate(row) for row in rows]
+    except Exception:
+        logger.exception("bank_rates_db_error", fallback="DEFAULT_BANK_RATES")
+        return list(DEFAULT_BANK_RATES)
+
+
+def get_bank_rates() -> list[BankRate]:
+    """Mevcut banka faiz oranlarini dondurur (fallback — sync).
+
+    DB erisimi olmayan context'lerde (test, Celery fallback vb.)
+    DEFAULT_BANK_RATES seed data'sini dondurur.
 
     Returns:
         Banka faiz oranlari listesi.

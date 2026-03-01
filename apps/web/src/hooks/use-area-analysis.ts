@@ -5,6 +5,7 @@ export function useAreaAnalysis(city: string, district: string) {
   return useQuery<AreaAnalysisResponse>({
     queryKey: ["area-analysis", city, district],
     queryFn: () => fetchAreaAnalysis(city, district),
+    enabled: !!city && !!district,
     // staleTime ve refetchOnWindowFocus kaldırıldı — global default yeterli
   });
 }

@@ -29,6 +29,7 @@ from src.modules.auth.schemas import (
     RegisterRequest,
     ResetPasswordRequest,
     TokenResponse,
+    UpdateProfileRequest,
     UserResponse,
 )
 from src.modules.auth.token_blacklist import TokenBlacklist
@@ -280,6 +281,52 @@ async def me(current_user: ActiveUser) -> UserResponse:
 
     Requires: Bearer access token (Authorization header).
     """
+    return UserResponse(
+        id=str(current_user.id),
+        email=current_user.email,
+        full_name=current_user.full_name,
+        phone=current_user.phone,
+        role=current_user.role,
+        office_id=str(current_user.office_id),
+        avatar_url=current_user.avatar_url,
+        is_active=current_user.is_active,
+        is_verified=current_user.is_verified,
+        preferred_channel=current_user.preferred_channel,
+    )
+
+
+# ---------- PUT /me ----------
+
+
+@router.put(
+    "/me",
+    response_model=UserResponse,
+    summary="Profil guncelleme",
+    description="Kullanicinin ad soyad ve telefon bilgilerini gunceller.",
+)
+async def update_me(
+    payload: UpdateProfileRequest,
+    current_user: ActiveUser,
+    db: DBSession,
+) -> UserResponse:
+    """
+    Authenticated kullanicinin profil bilgilerini gunceller.
+
+    Sadece gonderilen alanlar guncellenir (partial update).
+    - full_name: Ad soyad (min 2, max 150 karakter)
+    - phone: Telefon numarasi (max 20 karakter)
+
+    Requires: Bearer access token (Authorization header).
+    """
+    if payload.full_name is not None:
+        current_user.full_name = payload.full_name
+    if payload.phone is not None:
+        current_user.phone = payload.phone
+
+    await db.flush()
+
+    logger.info("profile_updated", user_id=str(current_user.id))
+
     return UserResponse(
         id=str(current_user.id),
         email=current_user.email,

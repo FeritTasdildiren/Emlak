@@ -1,15 +1,18 @@
-"""Kredi hesaplayici router — calculator endpoint'leri."""
+"""Kredi hesaplayici router — calculator endpoint'leri.
+
+Referans: TASK-193 (bank_rates DB entegrasyonu)
+"""
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from decimal import Decimal
 
 import structlog
 from fastapi import APIRouter, HTTPException
 
+from src.dependencies import DBSession
 from src.modules.auth.dependencies import ActiveUser
-from src.modules.calculator.bank_rates import get_bank_rates
+from src.modules.calculator.bank_rates import get_bank_rates_from_db
 from src.modules.calculator.calculator_schemas import (
     BankComparisonItem,
     BankComparisonRequest,
@@ -105,23 +108,35 @@ async def calculate_credit(
     "/rates",
     response_model=BankRatesResponse,
     summary="Banka faiz oranlari",
-    description="Guncel banka konut kredisi faiz oranlarini listeler.",
+    description="Guncel banka konut kredisi faiz oranlarini listeler (DB'den).",
 )
 async def list_bank_rates(
     user: ActiveUser,
+    db: DBSession,
 ) -> BankRatesResponse:
     """Banka faiz oranlari endpoint'i.
 
     JWT zorunlu, tenant bagimsiz.
+    DB'den aktif oranlari okur, hata durumunda fallback seed data kullanir.
     """
-    rates = get_bank_rates()
+    rates = await get_bank_rates_from_db(db)
 
-    logger.info("bank_rates_listed", user_id=str(user.id))
+    # En son guncelleme tarihini bul
+    last_updated = max(r.updated_at for r in rates) if rates else None
+
+    # Kaynak belirle: DB'den mi, fallback mi?
+    source = "database"
+    if rates and rates[0].update_source == "manual":
+        source = "seed_data"
+    elif rates and any(r.update_source == "tcmb_proxy" for r in rates):
+        source = "tcmb_proxy"
+
+    logger.info("bank_rates_listed", user_id=str(user.id), count=len(rates), source=source)
 
     return BankRatesResponse(
         rates=rates,
-        source="seed_data",
-        last_updated=datetime(2025, 2, 1, tzinfo=UTC),
+        source=source,
+        last_updated=last_updated,
     )
 
 
@@ -137,6 +152,7 @@ async def list_bank_rates(
 async def compare_banks(
     body: BankComparisonRequest,
     user: ActiveUser,
+    db: DBSession,
 ) -> BankComparisonResponse:
     """Banka karsilastirma endpoint'i.
 
@@ -155,8 +171,8 @@ async def compare_banks(
             detail="Kredi tutari sifir veya negatif olamaz. Pesinat yuzdesini kontrol edin.",
         )
 
-    # 2) Tum bankalar icin hesaplama
-    rates = get_bank_rates()
+    # 2) Tum bankalar icin hesaplama (DB'den)
+    rates = await get_bank_rates_from_db(db)
     comparisons: list[BankComparisonItem] = []
 
     for rate in rates:

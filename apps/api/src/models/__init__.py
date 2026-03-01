@@ -6,6 +6,7 @@ Alembic autogenerate için tüm modellerin import edilmesi zorunludur.
 """
 
 from src.models.area_analysis import AreaAnalysis
+from src.models.bank_rate import BankRate
 from src.models.base import BaseModel, SoftDeleteMixin, TenantMixin
 from src.models.customer import Customer
 from src.models.customer_note import CustomerNote
@@ -30,6 +31,7 @@ from src.modules.valuations.models.usage_quota import UsageQuota
 
 __all__ = [
     "AreaAnalysis",
+    "BankRate",
     "BaseModel",
     "Conversation",
     "Customer",

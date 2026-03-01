@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Building,
   BadgeTurkishLira,
+  AlertCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,8 @@ import { NumberInput } from "@/components/ui/number-input";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "@/components/ui/toast";
 import { cn, formatCurrency } from "@/lib/utils";
 import {
   useCalculator,
@@ -353,11 +356,15 @@ function CalculatorForm({
   updateInput,
   onCalculate,
   isCalculating,
+  isLoadingRates,
+  ratesError,
 }: {
   input: { propertyPrice: number; downPaymentPercent: number; termMonths: number };
   updateInput: (partial: Partial<typeof input>) => void;
   onCalculate: () => void;
   isCalculating: boolean;
+  isLoadingRates: boolean;
+  ratesError: boolean;
 }) {
   const downPaymentAmount = input.propertyPrice * (input.downPaymentPercent / 100);
   const loanAmount = input.propertyPrice - downPaymentAmount;
@@ -422,7 +429,7 @@ function CalculatorForm({
           className="bg-orange-600 hover:bg-orange-700 text-white gap-2 mt-2"
           onClick={onCalculate}
           loading={isCalculating}
-          disabled={isCalculating || input.propertyPrice < 100_000}
+          disabled={isCalculating || isLoadingRates || ratesError || input.propertyPrice < 100_000}
         >
           <Calculator className="h-4 w-4" />
           Hesapla
@@ -455,8 +462,24 @@ function EmptyState() {
 // ─── Main Page ──────────────────────────────────────────────────
 
 export default function CalculatorPage() {
-  const { input, updateInput, result, isCalculating, calculate } =
-    useCalculator();
+  const {
+    input,
+    updateInput,
+    result,
+    isCalculating,
+    isLoadingRates,
+    ratesError,
+    bankRates,
+    calculate,
+  } = useCalculator();
+
+  const handleCalculate = () => {
+    if (!bankRates || bankRates.length === 0) {
+      toast("Banka oranları yüklenemedi. Lütfen daha sonra tekrar deneyin.", "error");
+      return;
+    }
+    calculate();
+  };
 
   return (
     <div className="space-y-6">
@@ -474,6 +497,17 @@ export default function CalculatorPage() {
         </p>
       </div>
 
+      {/* Error State */}
+      {ratesError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Hata</AlertTitle>
+          <AlertDescription>
+            Banka oranları yüklenemedi. Lütfen daha sonra tekrar deneyin.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Layout: Form + Results */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Form Panel */}
@@ -482,15 +516,17 @@ export default function CalculatorPage() {
             <CalculatorForm
               input={input}
               updateInput={updateInput}
-              onCalculate={calculate}
+              onCalculate={handleCalculate}
               isCalculating={isCalculating}
+              isLoadingRates={isLoadingRates}
+              ratesError={!!ratesError}
             />
           </div>
         </div>
 
         {/* Results Panel */}
         <div className="lg:col-span-8 space-y-6">
-          {isCalculating ? (
+          {isCalculating || isLoadingRates ? (
             <ResultSkeleton />
           ) : result ? (
             <>

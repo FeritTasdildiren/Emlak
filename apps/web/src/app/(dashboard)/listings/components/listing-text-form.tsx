@@ -34,18 +34,79 @@ import {
 type ExtendedPropertyType = PropertyType | "dukkan";
 
 // ---------------------------------------------------------------------------
+// Select secenekleri
+// ---------------------------------------------------------------------------
+
+const ROOM_COUNT_OPTIONS = [
+  "1+0", "1+1", "2+0", "2+1", "2+2", "3+0", "3+1", "3+2",
+  "4+1", "4+2", "5+1", "5+2", "6+1", "6+2", "7+",
+].map((v) => ({ value: v, label: v }));
+
+const BATHROOM_COUNT_OPTIONS = [
+  { value: "1", label: "1" },
+  { value: "2", label: "2" },
+  { value: "3", label: "3" },
+  { value: "4", label: "4" },
+  { value: "5+", label: "5+" },
+];
+
+const FLOOR_INFO_OPTIONS = [
+  { value: "bodrum", label: "Bodrum" },
+  { value: "zemin_kat", label: "Zemin Kat" },
+  { value: "giris_kat", label: "Giriş Kat" },
+  { value: "ara_kat", label: "Ara Kat" },
+  { value: "en_ust_kat", label: "En Üst Kat" },
+  { value: "dublex", label: "Dubleks" },
+  { value: "triplex", label: "Tripleks" },
+  { value: "cati_kati", label: "Çatı Katı" },
+];
+
+const HEATING_TYPE_OPTIONS = [
+  { value: "dogalgaz_kombi", label: "Doğalgaz (Kombi)" },
+  { value: "dogalgaz_merkezi", label: "Doğalgaz (Merkezi)" },
+  { value: "merkezi_pay_olcer", label: "Merkezi (Pay Ölçer)" },
+  { value: "klima", label: "Klima" },
+  { value: "soba", label: "Soba" },
+  { value: "yerden_isitma", label: "Yerden Isıtma" },
+  { value: "yok", label: "Yok" },
+];
+
+const FURNITURE_STATUS_OPTIONS = [
+  { value: "bos", label: "Boş" },
+  { value: "esyali", label: "Eşyalı" },
+  { value: "yari_esyali", label: "Yarı Eşyalı" },
+];
+
+const FACADE_OPTIONS = [
+  { value: "kuzey", label: "Kuzey" },
+  { value: "guney", label: "Güney" },
+  { value: "dogu", label: "Doğu" },
+  { value: "bati", label: "Batı" },
+  { value: "kuzey_dogu", label: "Kuzey-Doğu" },
+  { value: "kuzey_bati", label: "Kuzey-Batı" },
+  { value: "guney_dogu", label: "Güney-Doğu" },
+  { value: "guney_bati", label: "Güney-Batı" },
+];
+
+// ---------------------------------------------------------------------------
 // Schema
 // ---------------------------------------------------------------------------
 
 const listingSchema = z.object({
   propertyType: z.enum(["daire", "villa", "ofis", "arsa", "dukkan"]),
   subCategory: z.string().optional(),
-  roomCount: z.enum(["1+0", "1+1", "2+1", "3+1", "4+1", "5+2"]).optional(),
+  roomCount: z.enum(["1+0", "1+1", "2+0", "2+1", "2+2", "3+0", "3+1", "3+2", "4+1", "4+2", "5+1", "5+2", "6+1", "6+2", "7+"]).optional(),
+  bathroomCount: z.enum(["1", "2", "3", "4", "5+"]).optional(),
   grossSqm: z.coerce.number().min(1, "Metrekare giriniz"),
   netSqm: z.coerce.number().optional(),
+  price: z.coerce.number().min(1, "Fiyat zorunludur"),
   floor: z.coerce.number().optional(),
   totalFloors: z.coerce.number().optional(),
-  buildingAge: z.coerce.number().min(0, "Yaş giriniz").optional(),
+  buildingAge: z.coerce.number().min(0, "Yaş giriniz").max(100, "Maksimum 100").optional(),
+  floorInfo: z.enum(["bodrum", "zemin_kat", "giris_kat", "ara_kat", "en_ust_kat", "dublex", "triplex", "cati_kati"]).optional(),
+  heatingType: z.enum(["dogalgaz_kombi", "dogalgaz_merkezi", "merkezi_pay_olcer", "klima", "soba", "yerden_isitma", "yok"]).optional(),
+  furnitureStatus: z.enum(["bos", "esyali", "yari_esyali"]).optional(),
+  facade: z.enum(["kuzey", "guney", "dogu", "bati", "kuzey_dogu", "kuzey_bati", "guney_dogu", "guney_bati"]).optional(),
   city: z.string().min(1, "İl seçiniz"),
   district: z.string().min(1, "İlçe seçiniz"),
   neighborhood: z.string().optional(),
@@ -103,28 +164,49 @@ const featuresByType: Record<ExtendedPropertyType, { id: string; label: string }
 };
 
 // ---------------------------------------------------------------------------
+// Bolum basligi yardimci bileseni
+// ---------------------------------------------------------------------------
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-2">
+      {children}
+    </h3>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
 interface ListingTextFormProps {
   onSubmit: (data: ListingFormData) => void;
   isGenerating: boolean;
+  initialData?: Partial<ListingFormData>;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function ListingTextForm({ onSubmit, isGenerating }: ListingTextFormProps) {
-  const { control, handleSubmit, watch, register, setValue } = useForm({
+export function ListingTextForm({ onSubmit, isGenerating, initialData }: ListingTextFormProps) {
+  const { control, handleSubmit, watch, register, setValue, reset } = useForm({
     resolver: zodResolver(listingSchema),
     defaultValues: {
       propertyType: "daire" as ExtendedPropertyType,
       subCategory: "",
-      roomCount: "2+1" as const,
+      roomCount: "3+1" as const,
+      bathroomCount: undefined as "1" | "2" | "3" | "4" | "5+" | undefined,
       grossSqm: 120,
-      floor: 3,
-      buildingAge: 5,
+      netSqm: undefined as number | undefined,
+      price: 0,
+      floor: undefined as number | undefined,
+      totalFloors: undefined as number | undefined,
+      buildingAge: undefined as number | undefined,
+      floorInfo: undefined as "bodrum" | "zemin_kat" | "giris_kat" | "ara_kat" | "en_ust_kat" | "dublex" | "triplex" | "cati_kati" | undefined,
+      heatingType: undefined as "dogalgaz_kombi" | "dogalgaz_merkezi" | "merkezi_pay_olcer" | "klima" | "soba" | "yerden_isitma" | "yok" | undefined,
+      furnitureStatus: undefined as "bos" | "esyali" | "yari_esyali" | undefined,
+      facade: undefined as "kuzey" | "guney" | "dogu" | "bati" | "kuzey_dogu" | "kuzey_bati" | "guney_dogu" | "guney_bati" | undefined,
       city: "",
       district: "",
       neighborhood: "",
@@ -142,6 +224,22 @@ export function ListingTextForm({ onSubmit, isGenerating }: ListingTextFormProps
       tone: "kurumsal" as ToneType,
     },
   });
+
+  // initialData degisince formu guncelle
+  React.useEffect(() => {
+    if (initialData) {
+      // Mevcut default'lari koruyarak uzerine yaz
+      reset((prev) => ({
+        ...prev,
+        ...initialData,
+        // features nesne oldugu icin ozel ele almak gerekebilir ama Partial<ListingFormData> ise yeterli olabilir
+        features: {
+          ...prev.features,
+          ...(initialData.features || {}),
+        }
+      }));
+    }
+  }, [initialData, reset]);
 
   const selectedTone = watch("tone") as ToneType;
   const selectedType = watch("propertyType") as ExtendedPropertyType;
@@ -171,175 +269,277 @@ export function ListingTextForm({ onSubmit, isGenerating }: ListingTextFormProps
   // Tip icin uygun feature'lar
   const visibleFeatures = featuresByType[selectedType] ?? [];
 
-  // Oda sayisi gereken tipler
+  // Arsa disindakiler icin gorunurluk kontrolleri
+  const isNotArsa = selectedType !== "arsa";
   const showRoomCount = selectedType === "daire" || selectedType === "villa" || selectedType === "ofis";
-  const showFloor = selectedType !== "arsa";
-  const showBuildingAge = selectedType !== "arsa";
 
   return (
     <form
       onSubmit={handleSubmit((data) => onSubmit(data as unknown as ListingFormData))}
       className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6 space-y-6"
     >
-      {/* 1. Property Type */}
-      <fieldset>
-        <legend className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-          Emlak Tipi
-        </legend>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {[
-            { value: "daire", label: "Daire", icon: Home },
-            { value: "villa", label: "Villa", icon: Castle },
-            { value: "ofis", label: "Ofis", icon: Briefcase },
-            { value: "arsa", label: "Arsa", icon: MapIcon },
-            { value: "dukkan", label: "Dükkan", icon: Store },
-          ].map((type) => (
-            <label key={type.value} className="cursor-pointer">
-              <input
-                type="radio"
-                value={type.value}
-                {...register("propertyType")}
-                className="peer sr-only"
-              />
-              <div
-                className={cn(
-                  "p-3 sm:p-4 rounded-lg border-2 transition-all text-center",
-                  selectedType === type.value
-                    ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30"
-                    : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                )}
-              >
-                <type.icon
-                  className={cn(
-                    "w-6 h-6 mx-auto mb-1.5",
-                    selectedType === type.value
-                      ? "text-indigo-600 dark:text-indigo-400"
-                      : "text-slate-400 dark:text-slate-500"
-                  )}
+      {/* ================================================================= */}
+      {/* BOLUM 1: Temel Bilgiler                                          */}
+      {/* ================================================================= */}
+      <fieldset className="space-y-4">
+        <SectionHeading>Temel Bilgiler</SectionHeading>
+
+        {/* Emlak Tipi — radio card */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Emlak Tipi
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {[
+              { value: "daire", label: "Daire", icon: Home },
+              { value: "villa", label: "Villa", icon: Castle },
+              { value: "ofis", label: "Ofis", icon: Briefcase },
+              { value: "arsa", label: "Arsa", icon: MapIcon },
+              { value: "dukkan", label: "Dükkan", icon: Store },
+            ].map((type) => (
+              <label key={type.value} className="cursor-pointer">
+                <input
+                  type="radio"
+                  value={type.value}
+                  {...register("propertyType")}
+                  className="peer sr-only"
                 />
-                <span
+                <div
                   className={cn(
-                    "text-sm font-medium",
+                    "p-3 sm:p-4 rounded-lg border-2 transition-all text-center",
                     selectedType === type.value
-                      ? "text-indigo-700 dark:text-indigo-300"
-                      : "text-slate-600 dark:text-slate-400"
+                      ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30"
+                      : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                   )}
                 >
-                  {type.label}
-                </span>
-              </div>
-            </label>
-          ))}
+                  <type.icon
+                    className={cn(
+                      "w-6 h-6 mx-auto mb-1.5",
+                      selectedType === type.value
+                        ? "text-indigo-600 dark:text-indigo-400"
+                        : "text-slate-400 dark:text-slate-500"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      selectedType === type.value
+                        ? "text-indigo-700 dark:text-indigo-300"
+                        : "text-slate-600 dark:text-slate-400"
+                    )}
+                  >
+                    {type.label}
+                  </span>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Alt Kategori */}
+        {subCategoryOptions.length > 0 && (
+          <Controller
+            name="subCategory"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Alt Kategori"
+                options={subCategoryOptions}
+                placeholder="Alt kategori seçin (opsiyonel)"
+                value={field.value ?? ""}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            )}
+          />
+        )}
+
+        {/* Fiyat + Konum — grid */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input
+            label="Fiyat (₺)"
+            type="number"
+            placeholder="Satış fiyatı"
+            {...register("price")}
+          />
+          {/* Il secimi */}
+          <Controller
+            name="city"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="İl"
+                options={cities}
+                placeholder="İl seçin"
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            )}
+          />
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          {/* Ilce secimi */}
+          <Controller
+            name="district"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="İlçe"
+                options={districtOptions}
+                placeholder={selectedCity ? "İlçe seçin" : "Önce il seçin"}
+                disabled={!selectedCity}
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+              />
+            )}
+          />
+          <Input
+            label="Mahalle (opsiyonel)"
+            placeholder="Örn: Moda, Caferağa..."
+            {...register("neighborhood")}
+          />
         </div>
       </fieldset>
 
-      {/* 1.5 Alt Kategori */}
-      {subCategoryOptions.length > 0 && (
-        <Controller
-          name="subCategory"
-          control={control}
-          render={({ field }) => (
-            <Select
-              label="Alt Kategori"
-              options={subCategoryOptions}
-              placeholder="Alt kategori seçin (opsiyonel)"
-              value={field.value ?? ""}
-              onChange={(e) => field.onChange(e.target.value)}
+      {/* ================================================================= */}
+      {/* BOLUM 2: Fiziksel Ozellikler                                      */}
+      {/* ================================================================= */}
+      <fieldset className="space-y-4">
+        <SectionHeading>Fiziksel Özellikler</SectionHeading>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {/* Oda Sayisi */}
+          {showRoomCount && (
+            <Controller
+              name="roomCount"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Oda Sayısı"
+                  options={ROOM_COUNT_OPTIONS}
+                  placeholder="Seçin"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
             />
           )}
-        />
+
+          {/* Banyo Sayisi — arsa haric */}
+          {isNotArsa && (
+            <Controller
+              name="bathroomCount"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Banyo Sayısı"
+                  options={BATHROOM_COUNT_OPTIONS}
+                  placeholder="Seçin"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
+            />
+          )}
+
+          {/* Brut m2 */}
+          <Input label="Brüt m²" type="number" {...register("grossSqm")} />
+
+          {/* Net m2 */}
+          <Input label="Net m²" type="number" {...register("netSqm")} />
+
+          {/* Kat Bilgisi — arsa haric */}
+          {isNotArsa && (
+            <Controller
+              name="floorInfo"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Kat Bilgisi"
+                  options={FLOOR_INFO_OPTIONS}
+                  placeholder="Seçin"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
+            />
+          )}
+
+          {/* Bina Yasi — arsa haric */}
+          {isNotArsa && (
+            <Input
+              label="Bina Yaşı (yıl)"
+              type="number"
+              min={0}
+              max={100}
+              {...register("buildingAge")}
+            />
+          )}
+        </div>
+      </fieldset>
+
+      {/* ================================================================= */}
+      {/* BOLUM 3: Ek Bilgiler — arsa haric                                */}
+      {/* ================================================================= */}
+      {isNotArsa && (
+        <fieldset className="space-y-4">
+          <SectionHeading>Ek Bilgiler</SectionHeading>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {/* Isitma Tipi */}
+            <Controller
+              name="heatingType"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Isıtma Tipi"
+                  options={HEATING_TYPE_OPTIONS}
+                  placeholder="Seçin"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
+            />
+
+            {/* Esya Durumu */}
+            <Controller
+              name="furnitureStatus"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Eşya Durumu"
+                  options={FURNITURE_STATUS_OPTIONS}
+                  placeholder="Seçin"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
+            />
+
+            {/* Cephe */}
+            <Controller
+              name="facade"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Cephe"
+                  options={FACADE_OPTIONS}
+                  placeholder="Seçin"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              )}
+            />
+          </div>
+        </fieldset>
       )}
 
-      {/* 2. Features & Location */}
-      <div className="grid sm:grid-cols-2 gap-6">
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-slate-900 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-2 w-full">
-            Özellikler
-          </legend>
-          <div className="grid grid-cols-2 gap-3">
-            {showRoomCount && (
-              <Controller
-                name="roomCount"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Oda Sayısı"
-                    options={["1+0", "1+1", "2+1", "3+1", "4+1", "5+2"].map(
-                      (v) => ({ value: v, label: v })
-                    )}
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value)}
-                  />
-                )}
-              />
-            )}
-            <Input label="Brüt m²" type="number" {...register("grossSqm")} />
-            {showFloor && (
-              <Input
-                label="Bulunduğu Kat"
-                type="number"
-                {...register("floor")}
-              />
-            )}
-            {showBuildingAge && (
-              <Input
-                label="Bina Yaşı"
-                type="number"
-                {...register("buildingAge")}
-              />
-            )}
-          </div>
-        </fieldset>
-
-        <fieldset className="space-y-3">
-          <legend className="text-sm font-semibold text-slate-900 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-2 w-full">
-            Konum
-          </legend>
-          <div className="space-y-3">
-            {/* Il secimi */}
-            <Controller
-              name="city"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  label="İl"
-                  options={cities}
-                  placeholder="İl seçin"
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              )}
-            />
-            {/* Ilce secimi */}
-            <Controller
-              name="district"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  label="İlçe"
-                  options={districtOptions}
-                  placeholder={selectedCity ? "İlçe seçin" : "Önce il seçin"}
-                  disabled={!selectedCity}
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              )}
-            />
-            <Input
-              label="Mahalle (opsiyonel)"
-              placeholder="Örn: Moda, Caferağa..."
-              {...register("neighborhood")}
-            />
-          </div>
-        </fieldset>
-      </div>
-
-      {/* 3. Highlights — dinamik */}
+      {/* ================================================================= */}
+      {/* BOLUM 4: One Cikan Ozellikler (checkbox) — DEGISTIRILMEDI        */}
+      {/* ================================================================= */}
       {visibleFeatures.length > 0 && (
-        <fieldset>
-          <legend className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-            Öne Çıkan Özellikler
-          </legend>
+        <fieldset className="space-y-3">
+          <SectionHeading>Öne Çıkan Özellikler</SectionHeading>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {visibleFeatures.map((item) => (
               <label
@@ -361,7 +561,9 @@ export function ListingTextForm({ onSubmit, isGenerating }: ListingTextFormProps
         </fieldset>
       )}
 
-      {/* 4. Notes */}
+      {/* ================================================================= */}
+      {/* Ek Notlar                                                         */}
+      {/* ================================================================= */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           Ek Notlar
@@ -377,7 +579,9 @@ export function ListingTextForm({ onSubmit, isGenerating }: ListingTextFormProps
         </p>
       </div>
 
-      {/* 5. Tone */}
+      {/* ================================================================= */}
+      {/* BOLUM 5: Ton                                                      */}
+      {/* ================================================================= */}
       <fieldset>
         <legend className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
           İlan Dili / Tonu
@@ -435,6 +639,9 @@ export function ListingTextForm({ onSubmit, isGenerating }: ListingTextFormProps
         </div>
       </fieldset>
 
+      {/* ================================================================= */}
+      {/* Submit                                                            */}
+      {/* ================================================================= */}
       <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
         <Button
           type="submit"

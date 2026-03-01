@@ -29,6 +29,10 @@ const customerFormSchema = z.object({
   desired_districts: z.array(z.string()),
   tags: z.array(z.string()),
   notes: z.string().optional(),
+  gender: z.string().optional(),
+  age_range: z.string().optional(),
+  profession: z.string().optional(),
+  family_size: z.number().min(1).max(10).optional(),
 })
 
 export type CustomerFormValues = z.infer<typeof customerFormSchema>
@@ -198,6 +202,21 @@ const roomOptions = [
   { value: "5+", label: "5+" },
 ]
 
+const genderOptions = [
+  { value: "erkek", label: "Erkek" },
+  { value: "kadin", label: "Kadın" },
+  { value: "belirtilmemis", label: "Belirtilmemiş" },
+]
+
+const ageRangeOptions = [
+  { value: "18-25", label: "18-25" },
+  { value: "26-35", label: "26-35" },
+  { value: "36-45", label: "36-45" },
+  { value: "46-55", label: "46-55" },
+  { value: "56-65", label: "56-65" },
+  { value: "65+", label: "65+" },
+]
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -233,6 +252,10 @@ export function CustomerForm({
       desired_districts: [],
       tags: [],
       notes: "",
+      gender: "",
+      age_range: "",
+      profession: "",
+      family_size: undefined,
       ...defaultValues,
     },
   })
@@ -291,7 +314,64 @@ export function CustomerForm({
         </FormSection>
       </div>
 
-      {/* Bölüm 2: Müşteri Tipi */}
+      {/* Bölüm 2: Demografik Bilgiler */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+        <FormSection title="Demografik Bilgiler">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Controller
+              name="gender"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Cinsiyet"
+                  options={genderOptions}
+                  placeholder="Seçiniz"
+                  errorMessage={errors.gender?.message}
+                  {...field}
+                />
+              )}
+            />
+            <Controller
+              name="age_range"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Yaş Aralığı"
+                  options={ageRangeOptions}
+                  placeholder="Seçiniz"
+                  errorMessage={errors.age_range?.message}
+                  {...field}
+                />
+              )}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Meslek"
+              placeholder="Örn: Mühendis, Avukat, Öğretmen"
+              errorMessage={errors.profession?.message}
+              {...register("profession")}
+            />
+            <Controller
+              name="family_size"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  label="Aile Büyüklüğü"
+                  placeholder="Kişi sayısı"
+                  min={1}
+                  max={10}
+                  value={field.value}
+                  onChange={field.onChange}
+                  errorMessage={errors.family_size?.message}
+                />
+              )}
+            />
+          </div>
+        </FormSection>
+      </div>
+
+      {/* Bölüm 3: Müşteri Tipi (eski Bölüm 2) */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
         <FormSection title="Müşteri Tipi">
           <Controller

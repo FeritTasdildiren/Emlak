@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FormField } from "@/components/ui/form-field";
 import { toast } from "@/components/ui/toast";
 import { useProfile } from "@/hooks/use-profile";
+import { api, ApiError } from "@/lib/api-client";
 import type { ProfileFormValues } from "@/types/settings";
 
 // ================================================================
@@ -34,7 +35,7 @@ const profileSchema = z.object({
 // ================================================================
 
 export function ProfileForm() {
-  const { user, isLoading, isError } = useProfile();
+  const { user, isLoading, isError, refetch } = useProfile();
 
   const {
     control,
@@ -59,9 +60,30 @@ export function ProfileForm() {
     }
   }, [user, reset]);
 
-  const onSubmit = (_data: ProfileFormValues) => {
-    // Backend'de profil güncelleme endpoint'i henüz yok
-    toast("Profil güncelleme yakında aktif olacak", "info");
+  const onSubmit = async (data: ProfileFormValues) => {
+    try {
+      await api.put("/auth/me", {
+        full_name: data.full_name,
+        phone: data.phone || null,
+      });
+      toast("Profil bilgileriniz başarıyla güncellendi.", "success");
+      // Profil verisini yeniden çek — form ve sidebar güncellensin
+      await refetch();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          toast("Oturumunuz sona ermiş. Lütfen tekrar giriş yapın.", "error");
+          return;
+        }
+        if (err.status === 422) {
+          toast("Girdiğiniz bilgilerde hata var. Lütfen kontrol edin.", "error");
+          return;
+        }
+        toast(err.detail || "Profil güncellenirken bir hata oluştu.", "error");
+        return;
+      }
+      toast("Profil güncellenirken bir hata oluştu. Lütfen tekrar deneyin.", "error");
+    }
   };
 
   // Yükleniyor durumu

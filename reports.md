@@ -2,6 +2,179 @@
 
 ---
 
+## [RAPOR-011] Vitrin Seed Genisleme + Ankara/Izmir Degerleme Verisi (TASK-194)
+| Alan | Deger |
+|------|-------|
+| **Durum** | TAMAMLANDI |
+| **Baslangic** | 2026-03-01 |
+| **Bitis** | 2026-03-01 |
+| **Etkilenen Dosyalar** | scripts/seed_showcases_expand.py (YENI), data/training/ankara_districts.json (YENI), data/training/izmir_districts.json (YENI), data/training/prepare_ankara_data.py (YENI), data/training/prepare_izmir_data.py (YENI), data/training/ankara_training_data.csv (YENI), data/training/izmir_training_data.csv (YENI) |
+
+### Hedef
+A) Mevcut 2 demo vitrini 8 yeni vitrinle genisletmek (toplam 10). B) Ankara (25 ilce) ve Izmir (29 ilce) icin LightGBM egitim verisi hazirlamak.
+
+### Yapilanlar
+- [x] seed_showcases_expand.py scripti olusturuldu — 8 yeni vitrin (farkli temalar: modern, classic, minimalist; farkli layout: grid, carousel)
+- [x] Deterministik showcase UUID'leri (bb000001-...-000000000003 ile 010) ile idempotent ON CONFLICT (slug) DO UPDATE
+- [x] seed_demo.py'deki OFFICE_ID ve USER_ID sabitleri kullanildi
+- [x] ankara_districts.json olusturuldu — 25 ilce, gercekci fiyat/koordinat/deprem verisi
+- [x] izmir_districts.json olusturuldu — 29 ilce (gorevde Konak tekrari vardi, 1'e dusuruldu)
+- [x] prepare_ankara_data.py olusturuldu — Seed 43, Istanbul formati ile birebir ayni
+- [x] prepare_izmir_data.py olusturuldu — Seed 44, Istanbul formati ile birebir ayni
+- [x] ankara_training_data.csv uretildi — 2525 kayit, 25 ilce, Ort 2.38M TL
+- [x] izmir_training_data.csv uretildi — 2967 kayit, 29 ilce, Ort 4.07M TL
+
+### Kararlar ve Notlar
+- Ankara fiyatlari Istanbul'un ~%60-70'i seviyesinde (Cankaya 78K vs Kadikoy 116K TL/m2)
+- Izmir fiyatlari Istanbul'un ~%50-65'i (Cesme 85K en yuksek, turistik bolge primi)
+- Ankara deprem riski tum ilceler "low" (PGA 0.05-0.13), Izmir "medium"/"high" (PGA 0.20-0.35)
+- Isitma dagilimi sehre ozel: Ankara soguk iklim→dogalgaz %45, Izmir Ege→klima %12
+- Konak gorevde 2 kez listelenmisti, tekrar cikarildi (29 benzersiz ilce)
+
+### Sonuc
+7 yeni dosya olusturuldu. Istanbul (3749) + Ankara (2525) + Izmir (2967) = toplam ~9241 egitim kaydı. Vitrin sayisi 2'den 10'a yukseltildi.
+
+---
+
+## [RAPOR-010] Banka Faiz Toplama Sistemi (TASK-193)
+| Alan | Deger |
+|------|-------|
+| **Durum** | TAMAMLANDI |
+| **Baslangic** | 2026-03-01 |
+| **Bitis** | 2026-03-01 |
+| **Etkilenen Dosyalar** | models/bank_rate.py (YENİ), models/__init__.py, migrations/versions/024_bank_rates_table.py (YENİ), modules/calculator/bank_rates.py, modules/calculator/calculator_router.py, modules/calculator/calculator_schemas.py, tasks/update_bank_rates.py (YENİ), modules/admin/bank_rates_router.py (YENİ), celery_app.py, main.py |
+
+### Hedef
+Kredi hesaplayicidaki hardcoded banka faiz oranlarini DB tablosuna tasimak, Celery freshness check task eklemek, GET /rates endpoint'ini DB'den okuyacak sekilde guncellemek, admin guncelleme endpoint'leri olusturmak.
+
+### Yapilanlar
+- [x] BankRate SQLAlchemy modeli olusturuldu (BigInteger PK, unique bank_name, Numeric oranlar, is_active, update_source, updated_at)
+- [x] Alembic migration 024 olusturuldu (tablo CREATE + idx_bank_rates_active_updated indeks + GRANT app_user + 6 banka seed INSERT)
+- [x] bank_rates.py yeniden yazildi: get_bank_rates_from_db(async) + get_bank_rates() fallback (DEFAULT_BANK_RATES korundu)
+- [x] calculator_router.py guncellendi: GET /rates ve POST /compare artik DB session alarak DB'den okuyor
+- [x] calculator_schemas.py guncellendi: BankRate'e is_active/update_source/from_attributes, BankRateUpdateRequest, BankRateUpdateItem, BankRateBulkUpdateRequest eklendi
+- [x] Celery task olusturuldu: check_bank_rates_freshness (7 gun esik, WARNING log)
+- [x] celery_app.py'ye 9. beat task eklendi (gunluk 09:00 TST = 06:00 UTC)
+- [x] Admin router olusturuldu: GET /admin/bank-rates (tumu), PUT /admin/bank-rates/{bank_name} (tek), PUT /admin/bank-rates (toplu UPSERT)
+- [x] models/__init__.py ve main.py guncellendi (import + include_router)
+- [x] ruff check temiz (TC003 noqa — bilinen Pydantic+annotations kisitlamasi)
+
+### Kararlar ve Notlar
+- bank_rates tablosu RLS-SIZ — tenant-bagimsiz global referans verisi, tum ofisler ayni oranlari gorur
+- BaseModel (UUID PK) kullanilMADI — BigInteger autoincrement PK (referans verisi icin basit yeterli)
+- DEFAULT_BANK_RATES fallback olarak korundu (graceful degradation: DB erisilemezse)
+- GRANT SELECT app_user eklendi — RLS session'larindan SELECT erisimi icin gerekli
+- Admin endpoint'ler platform_admin rolu gerektiriyor (require_role dependency)
+- Celery task sync psycopg2 kullanir (get_sync_session) — async event loop cakmasi onlendi
+
+### Sonuc
+Banka faiz oranlari DB'ye tasiindi, API DB'den okuyor, admin guncelleme endpoint'leri hazir, freshness check periyodik calisiyor. ruff check temiz.
+
+---
+
+## [RAPOR-009] Property Form Standardizasyon (TASK-189)
+| Alan | Deger |
+|------|-------|
+| **Durum** | TAMAMLANDI |
+| **Baslangic** | 2026-03-01 |
+| **Bitis** | 2026-03-01 |
+| **Etkilenen Dosyalar** | property.py, 022_property_form_standardization.py, properties/schemas.py, property.ts, property-form-schema.ts, property-form.tsx, showcases.ts |
+
+### Hedef
+Property formunu standardize etmek: 4 yeni DB kolonu (bathroom_count, furniture_status, building_type, facade), genisletilmis room_count secenekleri (15), yeni heating_type secenekleri (7), brut/net alan ayristirmasi, Arsa tipi icin alan gizleme.
+
+### Yapilanlar
+- [x] Backend: property.py modeline 4 yeni kolon eklendi (bathroom_count Integer, furniture_status String(20), building_type String(20), facade String(20))
+- [x] Backend: Alembic migration 022 olusturuldu (ADD COLUMN x4, RLS dokunulmadi)
+- [x] Backend: PropertyCreate + PropertyUpdate Pydantic schemalari olusturuldu
+- [x] Frontend: property.ts'ye HeatingType, FurnitureStatus, BuildingType, Facade type'lari eklendi
+- [x] Frontend: property-form-schema.ts yeniden yazildi (15 room, 5 bathroom, 7 heating, 3 furniture, 6 building, 8 facade secenegi)
+- [x] Frontend: property-form.tsx yeniden yazildi (Select'ler, grid-cols-2 alan, Arsa gizleme)
+- [x] ruff check 0 hata, tsc --noEmit 0 hata
+
+### Kararlar ve Notlar
+- area_sqm → gross_area (optional) + net_area (required) ayristirmasi
+- room_count ve heating_type SegmentedControl → Select (cok fazla secenek)
+- is_furnished checkbox → furniture_status Select (3 secenek)
+- Arsa: bathroom/heating/furniture/building_type/facade GİZLİ
+
+### Sonuc
+Tum degisiklikler basariyla tamamlandi. Build ve lint temiz.
+
+---
+
+## [RAPOR-008] Musteri Model Genisletme — Demografik Bilgiler (TASK-191)
+| Alan | Deger |
+|------|-------|
+| **Durum** | TAMAMLANDI |
+| **Baslangic** | 2026-03-01 |
+| **Bitis** | 2026-03-01 |
+| **Etkilenen Dosyalar** | customer.py, 022_customer_demographics.py, schemas.py, customer.ts, customer-form.tsx, listing-text-form.tsx, showcase-form.tsx, use-properties.ts |
+
+### Hedef
+Musteri modeline 4 demografik alan eklemek: cinsiyet (gender), yas araligi (age_range), meslek (profession), aile buyuklugu (family_size). Frontend formda yeni "Demografik Bilgiler" bolumu olusturmak.
+
+### Yapilanlar
+- [x] Customer SQLAlchemy modeline 4 yeni kolon eklendi (gender, age_range, profession, family_size)
+- [x] Alembic migration 022_customer_demographics olusturuldu (ADD COLUMN, RLS'e dokunulmadi)
+- [x] CustomerCreate, CustomerUpdate, CustomerResponse Pydantic schema'larina Optional alanlar eklendi
+- [x] Frontend customer.ts type'larina Gender, AgeRange type alias'lari + Customer interface'ine yeni alanlar eklendi
+- [x] customer-form.tsx'e "Demografik Bilgiler" bolumu eklendi (Cinsiyet Select, Yas Araligi Select, Meslek Input, Aile Buyuklugu NumberInput — grid-cols-2)
+- [x] Zod schema'ya yeni 4 optional alan eklendi, defaultValues guncellendi
+- [x] QuickAddCustomer modal'a demografik alan EKLENMEDI (gorev geregi basit kalmali)
+- [x] Mevcut build hatalari duzeltildi: listing-text-form.tsx bathroomCount enum type, showcase-form.tsx ve use-properties.ts mapApiToProperty eksik alanlar
+
+### Kararlar ve Notlar
+- Value=ASCII (erkek, kadin, belirtilmemis), Label=Turkce — backend'de ASCII string tutulur, frontend'de Turkce gosterilir
+- RLS policy'lerine dokunulmadi — mevcut satir bazli policy tum kolonlari kapsar
+- Mevcut build'de 3 onceden var olan TypeScript hatasi tespit ve duzeltildi (Property type'ina eklenen alanlar mapApiToProperty fonksiyonlarinda eksikti)
+- Turbopack nft.json trace hatasi bilinen Next.js 15.5.12 sorunu — type checking ve derleme basarili
+
+### Sonuc
+Musteri modeli demografik bilgiler ile genisletildi. Backend (model + migration + schema) ve frontend (type + form) tamamlandi. Build type-check basarili.
+
+---
+
+## [RAPOR-007] Ilan Asistani Fiyat Alani + Token Refresh + PUT /auth/me (TASK-186)
+| Alan | Deger |
+|------|-------|
+| **Durum** | TAMAMLANDI |
+| **Baslangic** | 2026-03-01 |
+| **Bitis** | 2026-03-01 |
+| **Etkilenen Dosyalar** | listing-text-form.tsx, listings.ts, listings/page.tsx, use-listing-assistant.ts, types/listing.ts, api-client.ts, auth/router.py, auth/schemas.py, profile-form.tsx |
+
+### Hedef
+1. Ilan Asistani "Ilan metni olustur" butonunun 422 hatasi vermesini cozmek (eksik price alani)
+2. Token refresh mekanizmasi eklemek (401 interceptor)
+3. PUT /auth/me endpoint'i ile profil guncelleme
+
+### Yapilanlar
+- [x] ListingFormData tipine `price: number` alani eklendi
+- [x] listing-text-form.tsx Zod schema'sina `price: z.coerce.number().min(1)` eklendi
+- [x] listing-text-form.tsx formuna "Fiyat (TL)" input alani eklendi
+- [x] listings.ts mapFormDataToBackend'te `price: 0` → `price: data.price` duzeltildi
+- [x] listings/page.tsx'de hook'tan error/regenerateText destructure edildi
+- [x] listings/page.tsx'de hata gosterimi (AlertCircle banner), onRegenerate/onChangeTone gercek fonksiyonlara baglandi
+- [x] use-listing-assistant.ts'de HTTP durum koduna gore Turkce hata mesajlari eklendi (422, 401, 403, 429, 500+)
+- [x] auth/schemas.py'ye UpdateProfileRequest schema eklendi
+- [x] auth/router.py'ye PUT /me endpoint eklendi (partial update: full_name, phone)
+- [x] api-client.ts'ye 401 interceptor eklendi: otomatik refresh token → yeni access token → retry
+- [x] Refresh promise singleton pattern ile concurrent 401'ler tek refresh'e konsolide edildi
+- [x] Auth endpoint'leri interceptor'dan haric tutuldu (sonsuz dongu onleme)
+- [x] profile-form.tsx mock toast → gercek PUT /auth/me API cagrisina baglandi
+- [x] pnpm build 0 hata, ruff check temiz
+
+### Kararlar ve Notlar
+- price defaultValues'a 0 olarak eklendi (Zod default degil — zodResolver uyumsuzlugu)
+- refreshPromise singleton ile birden fazla 401 ayni anda geldiginde tek bir refresh istegi yapilir
+- AUTH_EXCLUDED_ENDPOINTS listesi ile /auth/refresh, /auth/login, /auth/register interceptor'dan haric tutuldu
+- PUT /me endpoint'i partial update: sadece gonderilen alanlar guncellenir (null check)
+
+### Sonuc
+Her iki sorun basariyla cozuldu. Build ve lint temiz.
+
+---
+
 ## [RAPOR-006] Harita Sayfasi Mock → Real API + Mock Dosya Temizligi (TASK-181)
 | Alan | Deger |
 |------|-------|

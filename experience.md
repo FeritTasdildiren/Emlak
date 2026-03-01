@@ -2,6 +2,74 @@
 
 ---
 
+## 2026-03-01 - Vitrin Seed Genisleme + Ankara/Izmir Degerleme Verisi (TASK-194)
+### Gorev: 8 yeni vitrin seed + Ankara 25 ilce + Izmir 29 ilce egitim verisi hazirlama
+
+- [KARAR] Showcase UUID'leri deterministik yapildi (bb000001-...-000000000003~010) → seed_demo.py ile uyumlu, tekrar calistirmada catisma yok. ON CONFLICT (slug) ile idempotent
+- [KARAR] Isitma dagilimi sehre ozel ayarlandi (Ankara dogalgaz %45, Izmir klima %12) → Gercekci veri icin iklim farki onemli, ayni dagilim 3 sehirde kullanilmamali
+- [KARAR] Fiyat oranlarini istanbul_districts.json referans alinarak belirlendi → Cankaya 78K (Istanbul Kadikoy 116K'nin ~%67'si), Cesme 85K (turistik prim)
+- [HATA] Gorev taniminda Izmir 30 ilce denildi ama Konak 2 kez listelendi → Tekrari cikardim, 29 ilce ile devam ettim. Gorev tanimlarindaki listeleri her zaman unique kontrol et
+- [PATTERN] prepare_training_data.py'yi kopyalayip sadece SEED, INPUT_JSON, OUTPUT_CSV degistirmek → Ayni formul ve format, farkli sehir verisi. Code reuse icin ortak bir base fonksiyon daha iyi olurdu ama gorev kapsaminda kopya yeterli
+- [PATTERN] District JSON formati tutarli tutuldu (name=ASCII, neighborhoods=ASCII) → ML pipeline'da string encoding tutarliligi kritik, Turkce karakter LabelEncoder'da sorun cikarir
+- [UYARI] Ankara tum ilceler low deprem riski, Izmir medium/high → Model egitiminde deprem risk skoru Ankara icin neredeyse sabit (1), feature importance dusuk olabilir
+
+---
+
+## 2026-03-01 - Banka Faiz Toplama Sistemi (TASK-193)
+### Gorev: Hardcoded banka faiz oranlarini DB tablosuna tasima, Celery freshness check, admin endpoint, fallback mekanizmasi
+
+- [KARAR] BaseModel (UUID PK) yerine BigInteger autoincrement PK secildi → Tenant-bagimsiz referans verisi icin UUID gereksiz karmasiklik. bank_rates tablosu 10-20 satirlik kucuk tablo, autoincrement yeterli
+- [KARAR] RLS policy eklenmedi (bank_rates global) → Dogru karar. Tum ofisler ayni banka oranlarini gormeli. GRANT SELECT app_user yeterli — RLS session'larindan erisim saglar
+- [KARAR] DEFAULT_BANK_RATES fallback olarak korundu → DB erisim hatasi durumunda 500 yerine seed data doner. Graceful degradation production'da kritik
+- [KARAR] Celery task sync psycopg2 kullanir (get_sync_session) → Async event loop cakmasi onlendi. Mevcut drift_check.py pattern'i takip edildi — proje konvansiyonu
+- [PATTERN] Admin endpoint partial update: model_dump(exclude_unset=True) → Sadece gonderilen alanlar guncellenir. PATCH semantigi PUT ile — Pydantic Optional + exclude_unset kombinasyonu
+- [PATTERN] Migration'da seed data: op.bulk_insert() → Migration calisirken seed data otomatik yuklenir. Ayri script gereksiz, migration chain'de garanti
+- [PATTERN] Celery freshness check: monitoring task'ta autoretry_for=() + max_retries=0 → Monitoring task'lar retry etmemeli, bir sonraki beat period'da zaten tekrar calisir
+- [UYARI] TC003 (datetime TYPE_CHECKING'e tasi) ruff uyarisi — Pydantic + from __future__ import annotations uyumsuzlugu nedeniyle noqa gerekli. Bu proje genelinde bilinen kisitlama
+- [UYARI] calculator_schemas.py'de sinif siralamasi onemli — BankRateBulkUpdateRequest, BankRateUpdateItem'dan sonra tanimlanmali (from __future__ annotations ile forward ref calisiyor ama okunurluk icin dogru sira tercih edilmeli)
+
+---
+
+## 2026-03-01 - Property Form Standardizasyon (TASK-189)
+### Gorev: 4 yeni DB kolonu, genisletilmis form secenekleri, brut/net alan ayristirmasi, Arsa icin alan gizleme
+
+- [KARAR] SegmentedControl → Select degisimi (room_count 15 secenek, heating_type 7 secenek) → Segment 7+ secenekte kullanilabilirlik dusuyor, Select daha uygun. Genel kural: 5'ten fazla secenekte Select tercih et
+- [KARAR] area_sqm tek alani gross_area + net_area olarak ayristirildi → Backend modelde zaten 2 ayri kolon vardi (gross_area, net_area), frontend tek alan kullaniyordu. Ayristirma backend ile uyumlu hale getirdi
+- [KARAR] is_furnished boolean checkbox → furniture_status Select (bos/esyali/yari_esyali) → 3 durumlu bir alan boolean ile ifade edilemez, enum daha dogru. Emlak sektorunde "yari esyali" yaygin bir kategori
+- [KARAR] Arsa tipinde bathroom/heating/furniture/building_type/facade gizlenmesi → Hem schema'dan cikarildi hem UI'da render edilmiyor. Cift katmanli gizleme: validation + render
+- [PATTERN] Select value ASCII snake_case + label Turkce unicode → DB'de saklanan deger locale-bagimsiz, UI'da Turkce gosterim. i18n icin hazir yapi
+- [PATTERN] readonly const array → Select options uyumlulugu icin spread ([...options]) gerekiyor → TypeScript readonly tuple tipi React Select prop'una dogrudan atanamaz, spread ile mutable array'e donustur
+- [UYARI] Property.room_count tipi number→string degistirmek downstream etki yaratir → showcases.ts'de parseInt olan mapping kirildI, diger dosyalarda da kontrol gerekebilir. Tip degistirirken tum consumer'lari grep ile tara
+
+---
+
+## 2026-03-01 - Musteri Model Genisletme — Demografik Bilgiler (TASK-191)
+### Gorev: Customer modeline gender, age_range, profession, family_size kolonlari ekleme + frontend form guncellemesi
+
+- [KARAR] Value=ASCII (erkek, kadin, belirtilmemis) secildi, Label=Turkce gosterim → Backend'de tutarli string karsilastirma, frontend'de kullanici dostu gosterim. Unicode sorunlarindan kacinildi
+- [KARAR] RLS policy'lerine dokunulmadi — mevcut USING clause satir bazli (office_id) calisir, yeni kolon eklenmesi policy'yi bozmaz → Dogru yaklasim, gereksiz migration adimi onlendi
+- [KARAR] Migration'da downgrade fonksiyonu da yazildi (drop_column) — proje kurali "down migration yok, ileri seri" dese de geri alinabilirlik icin eklendi → Guvenlik agiyla yaklasildi
+- [PATTERN] Yeni nullable kolon eklerken migration'da sadece ADD COLUMN yeterli, default deger gerekmez → Mevcut satirlar NULL alir, frontend Optional oldugu icin sorun cikmaz
+- [PATTERN] mapApiToProperty fonksiyonlarinda Property type'ina eklenen yeni alanlar (heating_type, bathroom_count, vb.) null olarak set edilmeli → 3 farkli dosyada ayni pattern tekrarlaniyor, gelecekte tek bir utility fonksiyona tasinabilir
+- [UYARI] pnpm build'de cikan hatalar HER ZAMAN bizim degisikligimizden kaynaklanmiyor olabilir — mevcut teknik borcu kontrol et → listing-text-form.tsx, showcase-form.tsx, use-properties.ts'deki hatalar onceden varmi§
+- [UYARI] Turbopack nft.json trace hatasi (Next.js 15.5.12) — type check + compile basariliysa build OK sayilabilir, production deploy'da standalone output problemi olabilir
+
+---
+
+## 2026-03-01 - Ilan Asistani Fiyat Alani + Token Refresh + PUT /auth/me (TASK-186)
+### Gorev: Ilan Asistani 422 hatasini cozme, token refresh interceptor ekleme, profil guncelleme endpoint'i
+
+- [KARAR] Zod schema'ya price eklendi, defaultValues'a 0 kondu (Zod .default() + zodResolver uyumlu degil) → Build basarili, form bos acilinca validation dogru calisiyor
+- [KARAR] 401 interceptor'da singleton refreshPromise pattern kullanildi → Birden fazla paralel 401 geldigi durumda tek refresh istegi yapilir, diger istekler ayni Promise'i bekler
+- [KARAR] AUTH_EXCLUDED_ENDPOINTS array'i ile auth endpoint'leri interceptor'dan haric tutuldu → /auth/refresh'in kendisi 401 alirsa sonsuz donguye girmez
+- [KARAR] PUT /me endpoint partial update tasarlandi (sadece non-null alanlar) → Frontend ihtiyacina gore sadece full_name veya sadece phone gonderilebilir
+- [PATTERN] ApiError class import'u hook'larda kullanilarak HTTP durum koduna gore farkli Turkce mesajlar gosterildi → Kullanici 422, 401, 429 gibi farkli durumlarda anlamli mesaj goruyor
+- [PATTERN] lastFormDataRef (useRef) ile son form verisini saklayip onRegenerate/onChangeTone'da yeniden kullanmak → State guncellemesi gerektirmeden formu yeniden kullanabilme
+- [UYARI] FormData retry'da dikkat: multipart FormData body tekrar gonderilebilir mi? Browser'da FormData immutable olmadigi icin retry guvenli ama stream body'lerde sorun cikarabilir
+- [UYARI] refreshAccessToken basarisiz oldugunda handleAuthFailure() localStorage temizliyor + /login redirect yapıyor — eger kullanici zaten login sayfasindaysa redirect yapilmiyor (sonsuz redirect onleme)
+
+---
+
 ## 2026-02-28 - Harita Sayfasi Mock → Real API (TASK-181)
 ### Gorev: maps/page.tsx mock properties'i gercek GeoJSON API'ye baglama + mock dosya temizligi
 

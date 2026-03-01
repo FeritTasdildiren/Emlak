@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime  # noqa: TC003 — Pydantic runtime'da gerekli
 from decimal import Decimal
 
 from pydantic import BaseModel, Field
-
 
 # ---------- Request ----------
 
@@ -70,12 +69,16 @@ class CreditCalculationResponse(BaseModel):
 class BankRate(BaseModel):
     """Tek banka faiz bilgisi."""
 
+    model_config = {"from_attributes": True}
+
     bank_name: str = Field(..., description="Banka adi")
     annual_rate: Decimal = Field(..., description="Yillik faiz orani (%)")
     min_term: int = Field(..., description="Minimum vade (ay)")
     max_term: int = Field(..., description="Maksimum vade (ay)")
     min_amount: Decimal = Field(..., description="Minimum kredi tutari (TL)")
     max_amount: Decimal = Field(..., description="Maksimum kredi tutari (TL)")
+    is_active: bool = Field(default=True, description="Aktif mi")
+    update_source: str = Field(default="manual", description="Guncelleme kaynagi")
     updated_at: datetime = Field(..., description="Son guncelleme tarihi")
 
 
@@ -88,6 +91,47 @@ class BankRatesResponse(BaseModel):
 
 
 # ---------- Banka Karsilastirma ----------
+
+
+class BankRateUpdateRequest(BaseModel):
+    """Admin tek banka faiz orani guncelleme istegi (PUT /admin/bank-rates/{bank_name})."""
+
+    annual_rate: Decimal | None = Field(
+        default=None, gt=0, le=100, description="Yillik faiz orani (%)"
+    )
+    min_term: int | None = Field(
+        default=None, gt=0, le=360, description="Minimum vade (ay)"
+    )
+    max_term: int | None = Field(
+        default=None, gt=0, le=360, description="Maksimum vade (ay)"
+    )
+    min_amount: Decimal | None = Field(
+        default=None, gt=0, description="Minimum kredi tutari (TL)"
+    )
+    max_amount: Decimal | None = Field(
+        default=None, gt=0, description="Maksimum kredi tutari (TL)"
+    )
+    is_active: bool | None = Field(default=None, description="Aktif mi")
+
+
+class BankRateUpdateItem(BaseModel):
+    """Toplu guncelleme icin tek banka bilgisi."""
+
+    bank_name: str = Field(..., description="Banka adi")
+    annual_rate: Decimal = Field(..., gt=0, le=100, description="Yillik faiz orani (%)")
+    min_term: int | None = Field(default=None, description="Minimum vade (ay)")
+    max_term: int | None = Field(default=None, description="Maksimum vade (ay)")
+    min_amount: Decimal | None = Field(default=None, description="Minimum kredi tutari (TL)")
+    max_amount: Decimal | None = Field(default=None, description="Maksimum kredi tutari (TL)")
+    is_active: bool | None = Field(default=None, description="Aktif mi")
+
+
+class BankRateBulkUpdateRequest(BaseModel):
+    """Admin toplu banka faiz orani guncelleme istegi (PUT /admin/bank-rates)."""
+
+    rates: list[BankRateUpdateItem] = Field(
+        ..., min_length=1, description="Guncellenecek banka oranlari"
+    )
 
 
 class BankComparisonRequest(BaseModel):

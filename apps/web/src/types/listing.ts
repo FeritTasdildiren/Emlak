@@ -1,5 +1,10 @@
 export type PropertyType = 'daire' | 'villa' | 'ofis' | 'arsa' | 'dukkan';
-export type RoomCount = '1+0' | '1+1' | '2+1' | '3+1' | '4+1' | '5+2';
+export type RoomCount = '1+0' | '1+1' | '2+0' | '2+1' | '2+2' | '3+0' | '3+1' | '3+2' | '4+1' | '4+2' | '5+1' | '5+2' | '6+1' | '6+2' | '7+';
+export type BathroomCount = '1' | '2' | '3' | '4' | '5+';
+export type FloorInfo = 'bodrum' | 'zemin_kat' | 'giris_kat' | 'ara_kat' | 'en_ust_kat' | 'dublex' | 'triplex' | 'cati_kati';
+export type HeatingType = 'dogalgaz_kombi' | 'dogalgaz_merkezi' | 'merkezi_pay_olcer' | 'klima' | 'soba' | 'yerden_isitma' | 'yok';
+export type FurnitureStatus = 'bos' | 'esyali' | 'yari_esyali';
+export type Facade = 'kuzey' | 'guney' | 'dogu' | 'bati' | 'kuzey_dogu' | 'kuzey_bati' | 'guney_dogu' | 'guney_bati';
 export type ToneType = 'kurumsal' | 'samimi' | 'acil';
 export type PortalType = 'sahibinden' | 'hepsiemlak' | 'both';
 
@@ -16,14 +21,21 @@ export interface PropertyFeatures {
 }
 
 export interface ListingFormData {
+  property_id?: string;
   propertyType: PropertyType;
   subCategory?: string;
   roomCount?: RoomCount;
+  bathroomCount?: BathroomCount;
   grossSqm: number;
   netSqm?: number;
+  price: number;
   floor?: number;
   totalFloors?: number;
   buildingAge?: number;
+  floorInfo?: FloorInfo;
+  heatingType?: HeatingType;
+  furnitureStatus?: FurnitureStatus;
+  facade?: Facade;
   city: string;
   district: string;
   neighborhood?: string;

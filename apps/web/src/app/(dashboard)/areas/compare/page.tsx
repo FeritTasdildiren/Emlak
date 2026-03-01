@@ -236,16 +236,16 @@ function CompareContent() {
                   <tr>
                     <td className="px-6 py-4 font-medium text-gray-900">Yıllık Kira Verimi</td>
                     {data.areas.map((area, _, arr) => (
-                      <td key={area.district} className={cn("px-6 py-4", getCellClass(area.rental_yield_annual_pct, arr.map(a => a.rental_yield_annual_pct), 'high-good'))}>
-                        %{area.rental_yield_annual_pct.toFixed(2)}
+                      <td key={area.district} className={cn("px-6 py-4", getCellClass(area.investment_metrics?.kira_verimi ?? 0, arr.map(a => a.investment_metrics?.kira_verimi ?? 0), 'high-good'))}>
+                        {area.investment_metrics?.kira_verimi ? `%${area.investment_metrics.kira_verimi.toFixed(2)}` : 'N/A'}
                       </td>
                     ))}
                   </tr>
                   <tr>
                     <td className="px-6 py-4 font-medium text-gray-900">Amortisman Süresi</td>
                     {data.areas.map((area, _, arr) => (
-                      <td key={area.district} className={cn("px-6 py-4", getCellClass(area.amortization_years, arr.map(a => a.amortization_years), 'low-good'))}>
-                        {area.amortization_years} Yıl
+                      <td key={area.district} className={cn("px-6 py-4", getCellClass(area.investment_metrics?.amortisman_yil ?? 0, arr.map(a => a.investment_metrics?.amortisman_yil ?? 0), 'low-good'))}>
+                        {area.investment_metrics?.amortisman_yil ?? 'N/A'} Yıl
                       </td>
                     ))}
                   </tr>

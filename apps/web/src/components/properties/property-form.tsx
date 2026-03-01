@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { cn } from "@/lib/utils"
@@ -8,10 +9,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { NumberInput } from "@/components/ui/number-input"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import {
   fullPropertySchema,
   getPropertySchema,
   getTypeSpecificDefaults,
+  roomCountOptions,
+  bathroomCountOptions,
+  heatingTypeOptions,
+  furnitureStatusOptions,
+  buildingTypeOptions,
+  facadeOptions,
   type PropertyFormValues,
   type FormPropertyType,
 } from "./property-form-schema"
@@ -40,7 +48,7 @@ function SegmentedControl({
   className,
   error,
 }: {
-  options: SegmentedOption[]
+  options: readonly SegmentedOption[] | SegmentedOption[]
   value: string
   onChange: (value: string) => void
   label?: string
@@ -137,27 +145,9 @@ const propertyTypes: SegmentedOption[] = [
   { value: "dukkan", label: "Dükkan" },
 ]
 
-const roomOptions: SegmentedOption[] = [
-  { value: "1+0", label: "1+0" },
-  { value: "1+1", label: "1+1" },
-  { value: "2+1", label: "2+1" },
-  { value: "3+1", label: "3+1" },
-  { value: "4+1", label: "4+1" },
-  { value: "5+1", label: "5+1" },
-  { value: "6+", label: "6+" },
-]
-
 const statusOptions: SegmentedOption[] = [
   { value: "draft", label: "Taslak" },
   { value: "active", label: "Aktif" },
-]
-
-const heatingOptions: SegmentedOption[] = [
-  { value: "dogalgaz_kombi", label: "Doğalgaz Kombi" },
-  { value: "merkezi", label: "Merkezi" },
-  { value: "soba", label: "Soba" },
-  { value: "klima", label: "Klima" },
-  { value: "yerden_isitma", label: "Yerden Isıtma" },
 ]
 
 const zoningOptions = [
@@ -198,7 +188,10 @@ export function PropertyForm({
   onSubmit: onSubmitProp,
   className,
 }: PropertyFormProps) {
+  const router = useRouter()
   const [loading, setLoading] = React.useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = React.useState(false)
+  const [createdPropertyId, setCreatedPropertyId] = React.useState<string | null>(null)
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(fullPropertySchema),
@@ -209,8 +202,10 @@ export function PropertyForm({
       listing_type: "satilik",
       price: undefined,
       currency: "TRY",
-      area_sqm: undefined,
+      gross_area: undefined,
+      net_area: undefined,
       room_count: undefined,
+      bathroom_count: undefined,
       floor: undefined,
       total_floors: undefined,
       building_age: undefined,
@@ -221,11 +216,13 @@ export function PropertyForm({
       description: "",
       status: "draft",
       heating_type: undefined,
+      furniture_status: undefined,
+      building_type: undefined,
+      facade: undefined,
       has_balcony: false,
       has_elevator: false,
       has_parking: false,
       is_in_complex: false,
-      is_furnished: false,
       has_pool: false,
       has_garden: false,
       has_garage: false,
@@ -308,7 +305,11 @@ export function PropertyForm({
         onSubmitProp(data)
       } else {
         console.log("Form verileri:", data)
-        toast("Ilan basariyla kaydedildi!")
+        // Simulasyon: Basarili kayit sonrasi ID uret
+        const simulatedId = `PROP-${Math.floor(Math.random() * 10000)}`
+        setCreatedPropertyId(simulatedId)
+        setShowSuccessDialog(true)
+        toast("İlan başarıyla kaydedildi!")
       }
     } finally {
       setLoading(false)
@@ -316,10 +317,11 @@ export function PropertyForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className={cn("space-y-6", className)}
-    >
+    <>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className={cn("space-y-6", className)}
+      >
       {/* Bolum 1: Temel Bilgiler */}
       <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm sm:p-6">
         <FormSection title="Temel Bilgiler">
@@ -402,23 +404,41 @@ export function PropertyForm({
       {/* Bolum 3: Mülk Özellikleri — dinamik */}
       <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm sm:p-6">
         <FormSection title="Mülk Özellikleri">
-          {/* m2 — tum tipler */}
-          <Controller
-            name="area_sqm"
-            control={control}
-            render={({ field }) => (
-              <NumberInput
-                label="Alan (m²)"
-                suffix="m²"
-                placeholder="Örn: 120"
-                min={1}
-                max={50000}
-                value={field.value}
-                onChange={field.onChange}
-                errorMessage={errors.area_sqm?.message}
-              />
-            )}
-          />
+          {/* Brüt + Net Alan — tüm tipler, yan yana */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Controller
+              name="gross_area"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  label="Brüt Alan (m²)"
+                  suffix="m²"
+                  placeholder="Örn: 150"
+                  min={1}
+                  max={50000}
+                  value={field.value}
+                  onChange={field.onChange}
+                  errorMessage={errors.gross_area?.message}
+                />
+              )}
+            />
+            <Controller
+              name="net_area"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  label="Net Alan (m²)"
+                  suffix="m²"
+                  placeholder="Örn: 120"
+                  min={1}
+                  max={50000}
+                  value={field.value}
+                  onChange={field.onChange}
+                  errorMessage={errors.net_area?.message}
+                />
+              )}
+            />
+          </div>
 
           {/* -------- DAIRE ALANLARI -------- */}
           {selectedPropertyType === "daire" && (
@@ -427,16 +447,30 @@ export function PropertyForm({
                 name="room_count"
                 control={control}
                 render={({ field }) => (
-                  <SegmentedControl
+                  <Select
                     label="Oda Sayısı"
-                    options={roomOptions}
+                    options={[...roomCountOptions]}
+                    placeholder="Oda sayısı seçin"
                     value={field.value ?? ""}
-                    onChange={field.onChange}
-                    error={errors.room_count?.message}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    errorMessage={errors.room_count?.message}
                   />
                 )}
               />
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="bathroom_count"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Banyo Sayısı"
+                      options={[...bathroomCountOptions]}
+                      placeholder="Banyo sayısı seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
                 <Controller
                   name="floor"
                   control={control}
@@ -452,6 +486,8 @@ export function PropertyForm({
                     />
                   )}
                 />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Controller
                   name="building_age"
                   control={control}
@@ -471,16 +507,58 @@ export function PropertyForm({
                   name="heating_type"
                   control={control}
                   render={({ field }) => (
-                    <SegmentedControl
+                    <Select
                       label="Isıtma Tipi"
-                      options={heatingOptions}
+                      options={[...heatingTypeOptions]}
+                      placeholder="Isıtma tipi seçin"
                       value={field.value ?? ""}
-                      onChange={field.onChange}
+                      onChange={(e) => field.onChange(e.target.value)}
                     />
                   )}
                 />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-2">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Controller
+                  name="furniture_status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Eşya Durumu"
+                      options={[...furnitureStatusOptions]}
+                      placeholder="Eşya durumu seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="building_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Yapı Tipi"
+                      options={[...buildingTypeOptions]}
+                      placeholder="Yapı tipi seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="facade"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Cephe"
+                      options={[...facadeOptions]}
+                      placeholder="Cephe yönü seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                 <Controller name="has_balcony" control={control} render={({ field }) => (
                   <CheckboxField label="Balkon" checked={!!field.value} onChange={field.onChange} />
                 )} />
@@ -493,9 +571,6 @@ export function PropertyForm({
                 <Controller name="is_in_complex" control={control} render={({ field }) => (
                   <CheckboxField label="Site İçi" checked={!!field.value} onChange={field.onChange} />
                 )} />
-                <Controller name="is_furnished" control={control} render={({ field }) => (
-                  <CheckboxField label="Eşyalı" checked={!!field.value} onChange={field.onChange} />
-                )} />
               </div>
             </>
           )}
@@ -507,16 +582,30 @@ export function PropertyForm({
                 name="room_count"
                 control={control}
                 render={({ field }) => (
-                  <SegmentedControl
+                  <Select
                     label="Oda Sayısı"
-                    options={roomOptions}
+                    options={[...roomCountOptions]}
+                    placeholder="Oda sayısı seçin"
                     value={field.value ?? ""}
-                    onChange={field.onChange}
-                    error={errors.room_count?.message}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    errorMessage={errors.room_count?.message}
                   />
                 )}
               />
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="bathroom_count"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Banyo Sayısı"
+                      options={[...bathroomCountOptions]}
+                      placeholder="Banyo sayısı seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
                 <Controller
                   name="total_floors"
                   control={control}
@@ -531,6 +620,8 @@ export function PropertyForm({
                     />
                   )}
                 />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Controller
                   name="land_area"
                   control={control}
@@ -560,18 +651,62 @@ export function PropertyForm({
                   )}
                 />
               </div>
-              <Controller
-                name="heating_type"
-                control={control}
-                render={({ field }) => (
-                  <SegmentedControl
-                    label="Isıtma Tipi"
-                    options={heatingOptions}
-                    value={field.value ?? ""}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="heating_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Isıtma Tipi"
+                      options={[...heatingTypeOptions]}
+                      placeholder="Isıtma tipi seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="furniture_status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Eşya Durumu"
+                      options={[...furnitureStatusOptions]}
+                      placeholder="Eşya durumu seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="building_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Yapı Tipi"
+                      options={[...buildingTypeOptions]}
+                      placeholder="Yapı tipi seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="facade"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Cephe"
+                      options={[...facadeOptions]}
+                      placeholder="Cephe yönü seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 <Controller name="has_pool" control={control} render={({ field }) => (
                   <CheckboxField label="Havuz" checked={!!field.value} onChange={field.onChange} />
@@ -589,19 +724,35 @@ export function PropertyForm({
           {/* -------- OFIS ALANLARI -------- */}
           {selectedPropertyType === "ofis" && (
             <>
-              <Controller
-                name="room_count"
-                control={control}
-                render={({ field }) => (
-                  <SegmentedControl
-                    label="Oda Sayısı"
-                    options={roomOptions}
-                    value={field.value ?? ""}
-                    onChange={field.onChange}
-                  />
-                )}
-              />
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="room_count"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Oda Sayısı"
+                      options={[...roomCountOptions]}
+                      placeholder="Oda sayısı seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="bathroom_count"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Banyo Sayısı"
+                      options={[...bathroomCountOptions]}
+                      placeholder="Banyo sayısı seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Controller
                   name="floor"
                   control={control}
@@ -659,6 +810,62 @@ export function PropertyForm({
                   )}
                 />
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="heating_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Isıtma Tipi"
+                      options={[...heatingTypeOptions]}
+                      placeholder="Isıtma tipi seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="furniture_status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Eşya Durumu"
+                      options={[...furnitureStatusOptions]}
+                      placeholder="Eşya durumu seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="building_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Yapı Tipi"
+                      options={[...buildingTypeOptions]}
+                      placeholder="Yapı tipi seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="facade"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Cephe"
+                      options={[...facadeOptions]}
+                      placeholder="Cephe yönü seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 <Controller name="has_meeting_room" control={control} render={({ field }) => (
                   <CheckboxField label="Toplantı Odası" checked={!!field.value} onChange={field.onChange} />
@@ -674,6 +881,7 @@ export function PropertyForm({
           )}
 
           {/* -------- ARSA ALANLARI -------- */}
+          {/* Arsa: bathroom/heating/furniture/building_type/facade GİZLİ */}
           {selectedPropertyType === "arsa" && (
             <>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -784,6 +992,34 @@ export function PropertyForm({
           {/* -------- DUKKAN ALANLARI -------- */}
           {selectedPropertyType === "dukkan" && (
             <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="room_count"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Oda Sayısı"
+                      options={[...roomCountOptions]}
+                      placeholder="Oda sayısı seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="bathroom_count"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Banyo Sayısı"
+                      options={[...bathroomCountOptions]}
+                      placeholder="Banyo sayısı seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Controller
                   name="floor"
@@ -823,6 +1059,62 @@ export function PropertyForm({
                       max={100}
                       value={field.value}
                       onChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="heating_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Isıtma Tipi"
+                      options={[...heatingTypeOptions]}
+                      placeholder="Isıtma tipi seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="furniture_status"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Eşya Durumu"
+                      options={[...furnitureStatusOptions]}
+                      placeholder="Eşya durumu seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Controller
+                  name="building_type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Yapı Tipi"
+                      options={[...buildingTypeOptions]}
+                      placeholder="Yapı tipi seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
+                />
+                <Controller
+                  name="facade"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Cephe"
+                      options={[...facadeOptions]}
+                      placeholder="Cephe yönü seçin"
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
                     />
                   )}
                 />
@@ -953,5 +1245,22 @@ export function PropertyForm({
             : "İlan Oluştur"}
       </Button>
     </form>
+
+    <ConfirmDialog
+      open={showSuccessDialog}
+      title="İlan başarıyla oluşturuldu!"
+      description="İlan metni oluşturmak ister misiniz? AI asistanı ile saniyeler içinde profesyonel bir metin hazırlayabilirsiniz."
+      confirmLabel="İlan Asistanına Git"
+      cancelLabel="Listeye Dön"
+      onConfirm={() => {
+        if (createdPropertyId) {
+          router.push(`/listings?property_id=${createdPropertyId}`)
+        }
+      }}
+      onCancel={() => {
+        router.push("/properties")
+      }}
+    />
+  </>
   )
 }

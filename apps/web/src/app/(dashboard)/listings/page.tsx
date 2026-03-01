@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useListingAssistant } from "@/hooks/use-listing-assistant";
 import { ListingTextForm } from "./components/listing-text-form";
 import { ListingTextResult } from "./components/listing-text-result";
-import { FileText, Image as ImageIcon, Share2, Zap, Bell, Building2, Lock } from "lucide-react";
+import { FileText, Image as ImageIcon, Share2, Zap, Bell, Building2, Lock, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FeatureGate } from "@/components/feature-gate";
 import { usePlan } from "@/hooks/use-plan";
+import type { ListingFormData, ToneType } from "@/types/listing";
+import { api } from "@/lib/api-client";
+import type { Property } from "@/types/property";
 
 // Tab bileşenlerini lazy load — kullanıcı tab'a tıklayana kadar yüklenmez
 const VirtualStagingTab = dynamic(
@@ -22,13 +26,73 @@ const PortalExportTab = dynamic(
 
 type TabType = 'metin' | 'staging' | 'export';
 
-export default function ListingsPage() {
+function ListingsPageContent() {
+  const searchParams = useSearchParams();
+  const propertyId = searchParams.get("property_id");
   const [activeTab, setActiveTab] = useState<TabType>('metin');
-  const { isGenerating, result, generateText } = useListingAssistant();
+  const { isGenerating, result, error, generateText, regenerateText } = useListingAssistant();
   const { checkAccess } = usePlan();
+  const lastFormDataRef = useRef<ListingFormData | null>(null);
+  const [prefillData, setPrefillData] = useState<Partial<ListingFormData> | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Mock user credits
   const credits = 342;
+
+  // property_id varsa veriyi çek
+  useEffect(() => {
+    if (propertyId) {
+      api.get<Property>(`/properties/${propertyId}`)
+        .then((property) => {
+          setSelectedProperty(property);
+          // Mapping: Property -> ListingFormData
+          const mappedData: Partial<ListingFormData> = {
+            propertyType: property.property_type as ListingFormData['propertyType'],
+            price: property.price,
+            city: property.city,
+            district: property.district,
+            neighborhood: property.neighborhood || undefined,
+            grossSqm: property.area_sqm,
+            netSqm: property.area_sqm, // Eger net yoksa brutu kullan
+            roomCount: (property.room_count as ListingFormData['roomCount']) || undefined,
+            bathroomCount: (property.bathroom_count?.toString() as ListingFormData['bathroomCount']) || undefined,
+            floor: property.floor || undefined,
+            totalFloors: property.total_floors || undefined,
+            buildingAge: property.building_age || undefined,
+            heatingType: property.heating_type as ListingFormData['heatingType'] || undefined,
+            furnitureStatus: property.furniture_status as ListingFormData['furnitureStatus'] || undefined,
+            facade: property.facade as ListingFormData['facade'] || undefined,
+          };
+          setPrefillData(mappedData);
+        })
+        .catch((err) => {
+          console.error("Mülk bilgileri alınamadı:", err);
+        });
+    }
+  }, [propertyId]);
+
+  /** Form submit — formu kaydet + metin üret */
+  const handleGenerate = (data: ListingFormData) => {
+    lastFormDataRef.current = data;
+    // property_id'yi de ekle (opsiyonel ister)
+    const dataWithId = propertyId ? { ...data, property_id: propertyId } : data;
+    generateText(dataWithId as ListingFormData);
+  };
+
+  /** Yeniden üret — aynı form datası ile regenerate endpoint çağır */
+  const handleRegenerate = () => {
+    if (lastFormDataRef.current) {
+      regenerateText(lastFormDataRef.current);
+    }
+  };
+
+  /** Ton değiştir — form datasındaki tonu güncelle + regenerate */
+  const handleChangeTone = (tone: ToneType) => {
+    if (lastFormDataRef.current) {
+      lastFormDataRef.current = { ...lastFormDataRef.current, tone };
+      regenerateText(lastFormDataRef.current);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
@@ -105,21 +169,36 @@ export default function ListingsPage() {
         {/* TAB CONTENT */}
         {activeTab === 'metin' && (
           <FeatureGate feature="hasAiAssistant" featureName="İlan Metni Oluşturma" requiredPlan="pro">
-            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <ListingTextForm 
-                onSubmit={generateText} 
-                isGenerating={isGenerating} 
-              />
-              <ListingTextResult 
-                result={result?.data || null} 
-                isLoading={isGenerating} 
-                onRegenerate={() => {
-                  console.log("Regenerate requested");
-                }}
-                onChangeTone={(tone) => {
-                  console.log("Change tone to", tone);
-                }}
-              />
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {error && (
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 text-sm text-red-700 dark:text-red-300">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {selectedProperty && (
+                <div className="flex items-center gap-3 p-4 rounded-lg border border-indigo-100 bg-indigo-50 dark:border-indigo-900/30 dark:bg-indigo-900/10 text-sm text-indigo-700 dark:text-indigo-300">
+                  <Info className="w-5 h-5 shrink-0" />
+                  <p>
+                    <span className="font-semibold">{selectedProperty.title}</span> ilanı için metin oluşturuyorsunuz.
+                  </p>
+                </div>
+              )}
+
+              <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+                <ListingTextForm
+                  onSubmit={handleGenerate}
+                  isGenerating={isGenerating}
+                  initialData={prefillData || undefined}
+                />
+                <ListingTextResult
+                  result={result?.data || null}
+                  isLoading={isGenerating}
+                  onRegenerate={handleRegenerate}
+                  onChangeTone={handleChangeTone}
+                />
+              </div>
             </div>
           </FeatureGate>
         )}
@@ -142,5 +221,13 @@ export default function ListingsPage() {
 
       </main>
     </div>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense fallback={<div className="h-full w-full flex items-center justify-center min-h-[400px]">Yükleniyor...</div>}>
+      <ListingsPageContent />
+    </Suspense>
   );
 }

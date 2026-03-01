@@ -70,6 +70,22 @@ class ResetPasswordRequest(BaseModel):
     )
 
 
+class UpdateProfileRequest(BaseModel):
+    """Profil guncelleme istegi — login olmus kullanici icin (JWT zorunlu)."""
+
+    full_name: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=150,
+        description="Ad soyad (opsiyonel)",
+    )
+    phone: str | None = Field(
+        default=None,
+        max_length=20,
+        description="Telefon numarasi (opsiyonel)",
+    )
+
+
 class ChangePasswordRequest(BaseModel):
     """Sifre degistirme istegi — login olmus kullanici icin (JWT zorunlu)."""
 

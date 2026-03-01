@@ -131,6 +131,12 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour=17, minute=0),
         "options": {"queue": "notifications"},
     },
+    # ── Calculator: Bank Rates Freshness Check (Gunluk 09:00 TST = 06:00 UTC) ──
+    "check-bank-rates-freshness-daily": {
+        "task": "src.tasks.update_bank_rates.check_bank_rates_freshness",
+        "schedule": crontab(hour=6, minute=0),
+        "options": {"queue": "default"},
+    },
 }
 
 # ---------- Auto-discover Tasks ----------

@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+import { api } from "../api-client";
 
 export interface AreaAnalysisResponse {
   id: string;
@@ -59,6 +59,10 @@ export interface CompareAreaItem {
   transport_score: number;
   rental_yield_annual_pct: number;
   amortization_years: number;
+  investment_metrics?: {
+    kira_verimi?: number;
+    amortisman_yil?: number;
+  };
 }
 
 export interface CompareResponse {
@@ -67,28 +71,20 @@ export interface CompareResponse {
 }
 
 export async function fetchAreaAnalysis(city: string, district: string): Promise<AreaAnalysisResponse> {
-  const res = await fetch(`${API_BASE}/areas/${encodeURIComponent(city)}/${encodeURIComponent(district)}`);
-  if (!res.ok) throw new Error(`Area analysis fetch failed: ${res.status}`);
-  return res.json();
+  return api.get<AreaAnalysisResponse>(`/areas/${encodeURIComponent(city)}/${encodeURIComponent(district)}`);
 }
 
-export async function fetchDepremRisk(city: string, district: string): Promise<DepremRiskResponse> {
-  const res = await fetch(`${API_BASE}/deprem-risk/${encodeURIComponent(city)}/${encodeURIComponent(district)}`);
-  if (!res.ok) throw new Error(`Deprem risk fetch failed: ${res.status}`);
-  return res.json();
+export async function fetchDepremRisk(district: string): Promise<DepremRiskResponse> {
+  return api.get<DepremRiskResponse>(`/earthquake/risk/${encodeURIComponent(district)}`);
 }
 
 export async function fetchAreaCompare(districts: string[]): Promise<CompareResponse> {
   const params = new URLSearchParams();
   params.append("districts", districts.join(","));
-  const res = await fetch(`${API_BASE}/areas/compare?${params.toString()}`);
-  if (!res.ok) throw new Error(`Compare fetch failed: ${res.status}`);
-  return res.json();
+  return api.get<CompareResponse>(`/areas/compare?${params.toString()}`);
 }
 
 export async function fetchAreaTrends(city: string, district: string, months?: number): Promise<PriceTrendResponse> {
   const params = months ? `?months=${months}` : '';
-  const res = await fetch(`${API_BASE}/areas/${encodeURIComponent(city)}/${encodeURIComponent(district)}/trends${params}`);
-  if (!res.ok) throw new Error(`Trends fetch failed: ${res.status}`);
-  return res.json();
+  return api.get<PriceTrendResponse>(`/areas/${encodeURIComponent(city)}/${encodeURIComponent(district)}/trends${params}`);
 }

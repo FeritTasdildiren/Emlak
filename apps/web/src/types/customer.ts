@@ -1,6 +1,8 @@
 export type CustomerType = "buyer" | "seller" | "renter" | "landlord";
 export type LeadStatus = "cold" | "warm" | "hot" | "converted" | "lost";
 export type MatchStatus = "pending" | "interested" | "passed" | "contacted" | "converted";
+export type Gender = "erkek" | "kadin" | "belirtilmemis";
+export type AgeRange = "18-25" | "26-35" | "36-45" | "46-55" | "56-65" | "65+";
 
 export interface Customer {
   id: string;
@@ -18,6 +20,10 @@ export interface Customer {
   lead_status: LeadStatus;
   source?: string;
   notes?: string;
+  gender?: Gender;
+  age_range?: AgeRange;
+  profession?: string;
+  family_size?: number;
   last_contact_at?: string;
   created_at: string;
   updated_at: string;
