@@ -31,10 +31,15 @@ export function useCustomerSearch(query: string) {
   return useQuery({
     queryKey: ["customers-search", query],
     queryFn: async (): Promise<SearchableSelectOption[]> => {
-      if (query.length < 2) return [];
+      const searchParams = new URLSearchParams();
+      searchParams.set("per_page", "20");
+      searchParams.set("page", "1");
+      if (query.length >= 2) {
+        searchParams.set("search", query);
+      }
 
       const res = await api.get<CustomerListResponse>(
-        `/customers?search=${encodeURIComponent(query)}&per_page=20&page=1`
+        `/customers?${searchParams.toString()}`
       );
 
       return res.items.map((customer) => ({
@@ -43,7 +48,6 @@ export function useCustomerSearch(query: string) {
         sublabel: `${customer.phone || "Telefon yok"} — ${leadStatusLabel[customer.lead_status]}`,
       }));
     },
-    enabled: query.length >= 2,
     staleTime: 30 * 1000,
     gcTime: 2 * 60 * 1000,
   });

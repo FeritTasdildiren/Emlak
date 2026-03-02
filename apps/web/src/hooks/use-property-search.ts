@@ -35,12 +35,12 @@ export function usePropertySearch(query: string) {
   return useQuery({
     queryKey: ["properties-search", query],
     queryFn: async (): Promise<SearchableSelectOption[]> => {
-      if (query.length < 2) return [];
-
       const sp = new URLSearchParams();
-      sp.set("q", query);
       sp.set("per_page", "20");
       sp.set("page", "1");
+      if (query.length >= 2) {
+        sp.set("q", query);
+      }
 
       const res = await api.get<SearchApiResponse>(`/properties/search?${sp.toString()}`);
 
@@ -50,7 +50,6 @@ export function usePropertySearch(query: string) {
         sublabel: `${item.city} ${item.district} — ${formatPrice.format(item.price)} — ${item.rooms || "?"} oda ${item.net_area ?? item.gross_area ?? 0} m²`,
       }));
     },
-    enabled: query.length >= 2,
     staleTime: 30 * 1000,
     gcTime: 2 * 60 * 1000,
   });
