@@ -201,7 +201,7 @@ export function SearchableSelect({
         </div>
 
         {isOpen && (
-          <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in fade-in-0 zoom-in-95">
+          <div className="absolute z-50 mt-1 w-full rounded-md border bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 shadow-md outline-none animate-in fade-in-0 zoom-in-95">
             <div className="flex items-center border-b px-3">
               <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
               <input

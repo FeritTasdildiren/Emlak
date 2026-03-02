@@ -21,13 +21,14 @@ export interface DataFreshnessTooltipProps extends React.HTMLAttributes<HTMLDivE
 
 export function DataFreshnessTooltip({
   dataSources = [],
-  refreshStatus: _refreshStatus,
+  refreshStatus,
   lastRefreshedAt,
   refreshError,
   children,
   className,
   ...props
 }: DataFreshnessTooltipProps) {
+  void refreshStatus // Prop alınıyor ama henüz UI'da kullanılmıyor
   const [isVisible, setIsVisible] = React.useState(false)
 
   return (

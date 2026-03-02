@@ -12,6 +12,8 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Appointment } from "@/types/appointment";
 import { useCustomerSearch } from "@/hooks/use-customer-search";
 import { usePropertySearch } from "@/hooks/use-property-search";
+import { useCustomerDetail } from "@/hooks/use-customers";
+import { usePropertyDetail } from "@/hooks/use-property-detail";
 
 // ---------------------------------------------------------------------------
 // Schema
@@ -50,6 +52,13 @@ const statusOptions = [
   { value: "cancelled", label: "İptal Edildi" },
   { value: "no_show", label: "Gelmedi" },
 ];
+
+const customerTypeLabelMap: Record<string, string> = {
+  buyer: "Alıcı",
+  seller: "Satıcı",
+  renter: "Kiracı",
+  landlord: "Ev Sahibi",
+};
 
 // ---------------------------------------------------------------------------
 // Component
@@ -109,8 +118,37 @@ export function AppointmentForm({
   const { data: customerOptions = [], isLoading: isCustomerLoading } = useCustomerSearch(customerQuery);
   const { data: propertyOptions = [], isLoading: isPropertyLoading } = usePropertySearch(propertyQuery);
 
-  // Eğer isEditing ise ve elimizde ID varsa, o ID için de bir option olmalı ki label görünsün.
-  // Ancak bu basitleştirilmiş görevde şimdilik sadece arama sonuçlarını gösteriyoruz.
+  // Mevcut müşteri/ilan bilgisini çekmek için detay hook'ları (düzenleme modunda etiket göstermek için)
+  const watchedCustomerId = form.watch("customer_id");
+  const watchedPropertyId = form.watch("property_id");
+
+  const { data: customerDetail } = useCustomerDetail(watchedCustomerId || null);
+  const { property: propertyDetail } = usePropertyDetail(watchedPropertyId || "");
+
+  // Detay bilgisini arama sonuçlarıyla birleştir (seçili değerin etiketi görünsün)
+  const mergedCustomerOptions = React.useMemo(() => {
+    const opts = [...customerOptions];
+    if (customerDetail && !opts.find(o => o.value === customerDetail.id)) {
+      opts.unshift({
+        value: customerDetail.id,
+        label: `${customerDetail.full_name} (${customerTypeLabelMap[customerDetail.customer_type] || customerDetail.customer_type})`,
+        sublabel: customerDetail.phone || "Telefon yok",
+      });
+    }
+    return opts;
+  }, [customerOptions, customerDetail]);
+
+  const mergedPropertyOptions = React.useMemo(() => {
+    const opts = [...propertyOptions];
+    if (propertyDetail && !opts.find(o => o.value === propertyDetail.id)) {
+      opts.unshift({
+        value: propertyDetail.id,
+        label: propertyDetail.title,
+        sublabel: `${propertyDetail.city} ${propertyDetail.district} — ${propertyDetail.room_count || "?"} oda ${propertyDetail.area_sqm ?? 0} m²`,
+      });
+    }
+    return opts;
+  }, [propertyOptions, propertyDetail]);
 
   return (
     <form
@@ -194,7 +232,7 @@ export function AppointmentForm({
               <SearchableSelect
                 label="Müşteri"
                 placeholder="Müşteri ara..."
-                options={customerOptions}
+                options={mergedCustomerOptions}
                 onSearch={setCustomerQuery}
                 isLoading={isCustomerLoading}
                 errorMessage={errors.customer_id?.message}
@@ -209,7 +247,7 @@ export function AppointmentForm({
               <SearchableSelect
                 label="İlan"
                 placeholder="İlan ara..."
-                options={propertyOptions}
+                options={mergedPropertyOptions}
                 onSearch={setPropertyQuery}
                 isLoading={isPropertyLoading}
                 errorMessage={errors.property_id?.message}
