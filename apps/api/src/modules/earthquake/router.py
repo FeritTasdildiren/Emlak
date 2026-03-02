@@ -29,6 +29,11 @@ from src.modules.earthquake.service import calculate_risk_level
 
 logger = structlog.get_logger()
 
+
+def _pg_lower(s: str) -> str:
+    """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
+    return s.replace("\u0130", "i").lower()
+
 router = APIRouter(
     prefix="/api/v1/earthquake",
     tags=["earthquake"],
@@ -63,7 +68,7 @@ async def get_earthquake_risk(
         NotFoundError: Ilce deprem verisi bulunamazsa 404.
     """
     stmt = select(DepremRisk).where(
-        func.lower(DepremRisk.district) == district.lower(),
+        func.lower(DepremRisk.district) == _pg_lower(district),
         DepremRisk.neighborhood.is_(None),
     )
     result = await db.execute(stmt)

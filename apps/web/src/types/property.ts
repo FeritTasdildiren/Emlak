@@ -53,6 +53,8 @@ export interface Property {
   neighborhood: string | null;
   address: string | null;
   status: PropertyStatus;
+  description?: string | null;
+  photos?: string[];
   created_at: string;
   updated_at: string;
 }

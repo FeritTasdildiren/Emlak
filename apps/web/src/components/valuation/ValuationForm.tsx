@@ -14,6 +14,7 @@ import { QuotaInfo } from "./QuotaInfo"
 import { valuationSchema, type ValuationFormValues, type ValuationResultData } from "./schema"
 
 import { submitValuation, getQuotaStatus } from "@/lib/api/valuations"
+import { cities, getDistrictsForCity } from "@/lib/location-data"
 
 // ---------------------------------------------------------------------------
 // Sub-components: SegmentedControl, Toggle, ChipSelect
@@ -228,19 +229,6 @@ function FormSection({
 // Data
 // ---------------------------------------------------------------------------
 
-const ilceler = [
-  { value: "kadikoy", label: "Kadıköy" },
-  { value: "besiktas", label: "Beşiktaş" },
-  { value: "uskudar", label: "Üsküdar" },
-  { value: "atasehir", label: "Ataşehir" },
-  { value: "esenyurt", label: "Esenyurt" },
-  { value: "bahcelievler", label: "Bahçelievler" },
-  { value: "maltepe", label: "Maltepe" },
-  { value: "pendik", label: "Pendik" },
-  { value: "sariyer", label: "Sarıyer" },
-  { value: "sisli", label: "Şişli" },
-]
-
 const mahalleler = [
   { value: "caferaga", label: "Caferağa" },
   { value: "moda", label: "Moda" },
@@ -355,8 +343,20 @@ export function ValuationForm({ className }: ValuationFormProps) {
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = form
+
+  // Seçili şehre göre ilçeleri filtrele
+  const selectedCity = watch("city")
+  const ilceler = React.useMemo(() => getDistrictsForCity(selectedCity || "istanbul"), [selectedCity])
+
+  // Şehir değiştiğinde ilçeyi sıfırla
+  React.useEffect(() => {
+    setValue("district", "")
+    setValue("neighborhood", "")
+  }, [selectedCity, setValue])
 
   const onSubmit = async (data: ValuationFormValues) => {
     setLoading(true)
@@ -438,7 +438,8 @@ export function ValuationForm({ className }: ValuationFormProps) {
                   render={({ field }) => (
                     <Select
                       label="İl"
-                      options={[{ value: "istanbul", label: "İstanbul" }]}
+                      options={cities}
+                      placeholder="İl seçin"
                       {...field}
                     />
                   )}

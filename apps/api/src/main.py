@@ -45,6 +45,7 @@ from src.modules.audit.audit_router import router as audit_router
 from src.modules.auth.router import router as auth_router
 from src.modules.calculator.calculator_router import router as calculator_router
 from src.modules.customers.router import router as customers_router
+from src.modules.dashboard.router import router as dashboard_router
 from src.modules.earthquake.router import router as earthquake_router
 from src.modules.maps.router import router as maps_router
 from src.modules.matches.router import router as matches_router
@@ -259,12 +260,17 @@ app.include_router(audit_router)
 app.include_router(customers_router)
 app.include_router(matches_router)
 
+# --- Dashboard Router (JWT GEREKTiRiR) ---
+app.include_router(dashboard_router)
+
 # --- Calculator Router (JWT GEREKTiRiR — tenant bagimsiz) ---
 app.include_router(calculator_router)
 
 # --- Properties & Search Routers (JWT GEREKTiRiR) ---
-app.include_router(properties_router)
+# ONEMLI: search_router ONCE kaydedilmeli — /properties/search statik path,
+# properties_router'daki /{property_id} parametrik path'ten ONCE gelmeli.
 app.include_router(search_router)
+app.include_router(properties_router)
 
 # --- Showcases Router (CRUD: JWT GEREKTiRiR, Public: JWT gereksiz) ---
 app.include_router(showcases_router)

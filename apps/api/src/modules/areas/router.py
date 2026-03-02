@@ -42,6 +42,16 @@ router = APIRouter(
 # ---------- Yardimci fonksiyonlar ----------
 
 
+def _pg_lower(s: str) -> str:
+    """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir.
+
+    Python'da 'İ'.lower() = 'i\\u0307' (combining dot) uretir,
+    PostgreSQL'de lower('İ') = 'i' (duz) uretir.
+    Bu fonksiyon PostgreSQL davranisini taklit eder.
+    """
+    return s.replace("\u0130", "i").lower()
+
+
 def _calculate_investment_metrics(
     avg_sale: float | None,
     avg_rent: float | None,
@@ -116,7 +126,7 @@ async def compare_areas(
 
     # Tum ilceleri tek sorguda cek
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.district).in_([d.lower() for d in district_list]),
+        func.lower(AreaAnalysis.district).in_([_pg_lower(d) for d in district_list]),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
@@ -124,11 +134,11 @@ async def compare_areas(
 
     # Bulunan ilceleri dict'e cevir (case-insensitive lookup)
     found: dict[str, AreaAnalysis] = {
-        row.district.lower(): row for row in rows
+        _pg_lower(row.district): row for row in rows
     }
 
     # Bulunamayan ilceleri kontrol et
-    not_found = [d for d in district_list if d.lower() not in found]
+    not_found = [d for d in district_list if _pg_lower(d) not in found]
     if not_found:
         raise NotFoundError(
             resource="Bolge",
@@ -138,7 +148,7 @@ async def compare_areas(
     # Istenilen siraya gore response olustur
     items: list[CompareAreaItem] = []
     for d in district_list:
-        area = found[d.lower()]
+        area = found[_pg_lower(d)]
         avg_sale = (
             float(area.avg_price_sqm_sale) if area.avg_price_sqm_sale else None
         )
@@ -196,7 +206,7 @@ async def get_area_price_comparison(
         NotFoundError: Ilce bulunamazsa 404.
     """
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.district) == district.lower(),
+        func.lower(AreaAnalysis.district) == _pg_lower(district),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
@@ -261,8 +271,8 @@ async def get_district_price_trends(
     stmt = (
         select(PriceHistory)
         .where(
-            func.lower(PriceHistory.city) == city.lower(),
-            func.lower(PriceHistory.area_name) == district.lower(),
+            func.lower(PriceHistory.city) == _pg_lower(city),
+            func.lower(PriceHistory.area_name) == _pg_lower(district),
             PriceHistory.area_type == "district",
             PriceHistory.date >= start_date,
         )
@@ -337,8 +347,8 @@ async def get_district_demographics(
         NotFoundError: Sehir/ilce bulunamazsa 404.
     """
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.city) == city.lower(),
-        func.lower(AreaAnalysis.district) == district.lower(),
+        func.lower(AreaAnalysis.city) == _pg_lower(city),
+        func.lower(AreaAnalysis.district) == _pg_lower(district),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
@@ -392,8 +402,8 @@ async def get_area_detail(
         NotFoundError: Sehir/ilce bulunamazsa 404.
     """
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.city) == city.lower(),
-        func.lower(AreaAnalysis.district) == district.lower(),
+        func.lower(AreaAnalysis.city) == _pg_lower(city),
+        func.lower(AreaAnalysis.district) == _pg_lower(district),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)

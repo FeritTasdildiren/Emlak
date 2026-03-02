@@ -535,7 +535,7 @@ UPSERT_DEMOGRAPHICS_SQL = text("""
         :population, :median_age,
         :age_0_14_pct, :age_15_24_pct, :age_25_44_pct, :age_45_64_pct, :age_65_plus_pct,
         :population_density, :household_count, :avg_household_size,
-        :data_sources::jsonb, :provenance_version, 'fresh'
+        CAST(:data_sources AS jsonb), :provenance_version, 'fresh'
     )
     ON CONFLICT (city, district, neighborhood)
     DO UPDATE SET

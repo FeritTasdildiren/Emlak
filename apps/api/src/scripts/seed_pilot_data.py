@@ -306,7 +306,7 @@ def _update_area_extra_fields(
             transport_score = :transport_score,
             amenity_score = :amenity_score,
             investment_score = :investment_score,
-            poi_data = :poi_data::jsonb,
+            poi_data = CAST(:poi_data AS jsonb),
             amortization_years = :amortization_years,
             updated_at = now()
         WHERE city = :city

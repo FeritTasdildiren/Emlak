@@ -114,6 +114,7 @@ export const districtsByCity: Record<string, DistrictData[]> = {
     { value: "Karsiyaka", label: "Karşıyaka" },
     { value: "Karaburun", label: "Karaburun" },
     { value: "Kemalpasa", label: "Kemalpaşa" },
+    { value: "Kinik", label: "Kınık" },
     { value: "Kiraz", label: "Kiraz" },
     { value: "Konak", label: "Konak" },
     { value: "Menderes", label: "Menderes" },

@@ -226,20 +226,36 @@ export default function MessagesPage() {
 
       {/* ── Boş Durum ────────────────────────────────────────── */}
       {!isLoading && !isError && notifications.length === 0 && (
-        <div className="border border-gray-200 bg-white rounded-lg p-12 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 bg-gray-100 flex items-center justify-center rounded-full mb-4">
-            <Bell className="w-7 h-7 text-gray-400" />
+        <div className="border border-gray-200 bg-white rounded-xl p-12 flex flex-col items-center justify-center text-center">
+          <div className="w-20 h-20 bg-blue-50 flex items-center justify-center rounded-full mb-5">
+            <Bell className="w-9 h-9 text-blue-400" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
             {activeTab === "unread"
               ? "Tüm bildirimler okunmuş"
               : "Henüz bildiriminiz yok"}
           </h2>
-          <p className="text-sm text-gray-500 max-w-sm">
+          <p className="text-sm text-gray-500 max-w-md leading-relaxed">
             {activeTab === "unread"
               ? "Okunmamış bildiriminiz bulunmuyor. Tüm bildirimleri görmek için 'Tümü' sekmesine geçin."
-              : "Yeni bildirimler geldiğinde burada görünecektir."}
+              : "Bildirimleriniz burada görünecek. Yeni eşleşmeler, değerleme sonuçları ve sistem bildirimleri otomatik olarak burada listelenecek."}
           </p>
+          {activeTab === "all" && (
+            <div className="mt-6 flex items-center gap-6 text-xs text-gray-400">
+              <div className="flex items-center gap-1.5">
+                <Users className="w-4 h-4" />
+                <span>Eşleşmeler</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Home className="w-4 h-4" />
+                <span>Değerlemeler</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <MessageSquare className="w-4 h-4" />
+                <span>Mesajlar</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

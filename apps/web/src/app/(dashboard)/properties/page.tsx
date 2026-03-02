@@ -28,7 +28,6 @@ import {
   PackageOpen,
   Search,
 } from "lucide-react";
-import { toast } from "@/components/ui/toast";
 
 const statusConfig: Record<
   PropertyStatus,
@@ -186,7 +185,7 @@ function PropertiesPageContent() {
   }
 
   function handlePropertyClick(property: Property) {
-    toast(`${property.title} — Detay sayfası yakında eklenecek.`, "info");
+    router.push(`/properties/${property.id}`);
   }
 
   const totalResults = data?.total ?? 0;

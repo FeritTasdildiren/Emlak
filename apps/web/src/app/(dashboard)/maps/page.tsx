@@ -166,6 +166,16 @@ export default function MapsPage() {
         </div>
       )}
 
+      {/* Veri yok mesajı */}
+      {!isPropertiesLoading && !isPropertiesError && mapProperties.length === 0 && (
+        <div className="absolute bottom-4 left-4 z-10 bg-amber-50 border border-amber-200 rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 max-w-sm">
+          <MapIcon className="h-5 w-5 text-amber-500 shrink-0" />
+          <span className="text-sm text-amber-800">
+            Bu bölgede henüz ilan bulunamadı. Farklı bir bölge aramayı deneyin.
+          </span>
+        </div>
+      )}
+
       {/* Üst Arama Barı (Overlay) */}
       <div className="absolute top-4 left-4 right-4 md:w-96 z-10">
         <div className="bg-white rounded-lg shadow-lg p-2 flex gap-2">

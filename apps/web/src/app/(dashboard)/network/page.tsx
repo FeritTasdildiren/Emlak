@@ -97,7 +97,7 @@ function ShowcaseCard({ showcase }: { showcase: Showcase }) {
       </CardContent>
 
       <CardFooter className="gap-2 flex-wrap">
-        <Link href={`/network/${showcase.id}/edit`}>
+        <Link href={`/network/edit/${showcase.id}`}>
           <Button variant="outline" size="sm" className="gap-1.5">
             <Pencil className="h-3.5 w-3.5" />
             Düzenle

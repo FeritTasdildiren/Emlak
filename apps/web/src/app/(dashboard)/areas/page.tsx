@@ -14,6 +14,7 @@ import {
 
 import { AreaAnalysisCard } from "@/components/map/AreaAnalysisCard";
 import { EarthquakeRiskCard } from "@/components/dashboard/earthquake-risk-card";
+import { cities, getDistrictsForCity } from "@/lib/location-data";
 
 // Recharts ağır kütüphane — lazy load ile bundle'dan ayır
 const PriceTrendChart = dynamic(
@@ -31,58 +32,35 @@ import { useAreaAnalysis } from "@/hooks/use-area-analysis";
 import { useDepremRisk } from "@/hooks/use-deprem-risk";
 import { useAreaTrends } from "@/hooks/use-area-trends";
 
-// İstanbul ilçeleri (alfabetik)
-const ISTANBUL_DISTRICTS = [
-  { value: "Adalar", label: "Adalar" },
-  { value: "Arnavutkoy", label: "Arnavutköy" },
-  { value: "Atasehir", label: "Ataşehir" },
-  { value: "Avcilar", label: "Avcılar" },
-  { value: "Bagcilar", label: "Bağcılar" },
-  { value: "Bahcelievler", label: "Bahçelievler" },
-  { value: "Bakirkoy", label: "Bakırköy" },
-  { value: "Basaksehir", label: "Başakşehir" },
-  { value: "Bayrampasa", label: "Bayrampaşa" },
-  { value: "Besiktas", label: "Beşiktaş" },
-  { value: "Beykoz", label: "Beykoz" },
-  { value: "Beylikduzu", label: "Beylikdüzü" },
-  { value: "Beyoglu", label: "Beyoğlu" },
-  { value: "Buyukcekmece", label: "Büyükçekmece" },
-  { value: "Catalca", label: "Çatalca" },
-  { value: "Cekmekoy", label: "Çekmeköy" },
-  { value: "Esenler", label: "Esenler" },
-  { value: "Esenyurt", label: "Esenyurt" },
-  { value: "Eyupsultan", label: "Eyüpsultan" },
-  { value: "Fatih", label: "Fatih" },
-  { value: "Gaziosmanpasa", label: "Gaziosmanpaşa" },
-  { value: "Gungoren", label: "Güngören" },
-  { value: "Kadikoy", label: "Kadıköy" },
-  { value: "Kagithane", label: "Kağıthane" },
-  { value: "Kartal", label: "Kartal" },
-  { value: "Kucukcekmece", label: "Küçükçekmece" },
-  { value: "Maltepe", label: "Maltepe" },
-  { value: "Pendik", label: "Pendik" },
-  { value: "Sancaktepe", label: "Sancaktepe" },
-  { value: "Sariyer", label: "Sarıyer" },
-  { value: "Silivri", label: "Silivri" },
-  { value: "Sultanbeyli", label: "Sultanbeyli" },
-  { value: "Sultangazi", label: "Sultangazi" },
-  { value: "Sile", label: "Şile" },
-  { value: "Sisli", label: "Şişli" },
-  { value: "Tuzla", label: "Tuzla" },
-  { value: "Umraniye", label: "Ümraniye" },
-  { value: "Uskudar", label: "Üsküdar" },
-  { value: "Zeytinburnu", label: "Zeytinburnu" }
-];
+// Şehir value → label mapping
+const cityLabelMap: Record<string, string> = {
+  istanbul: "İstanbul",
+  ankara: "Ankara",
+  izmir: "İzmir",
+};
 
 function AreaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const district = searchParams.get("district");
-  const city = "İstanbul"; // Sabit şehir
+  const cityParam = searchParams.get("city") || "istanbul";
+  const city = cityLabelMap[cityParam] || "İstanbul";
+
+  // Seçili şehre göre ilçe listesi
+  const districts = getDistrictsForCity(cityParam);
+
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    const params = new URLSearchParams();
+    params.set("city", value);
+    // Şehir değiştiğinde ilçe seçimini sıfırla
+    router.push(`/areas?${params.toString()}`);
+  };
 
   const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     const params = new URLSearchParams(searchParams);
+    params.set("city", cityParam);
     params.set("district", value);
     router.push(`/areas?${params.toString()}`);
   };
@@ -113,12 +91,18 @@ function AreaContent() {
         <div className="space-y-2 max-w-md">
           <h2 className="text-2xl font-bold text-gray-900">Bir Bölge Seçin</h2>
           <p className="text-gray-500">
-            Detaylı pazar analizi, fiyat trendleri ve risk raporlarını görüntülemek için lütfen listeden bir ilçe seçin.
+            Detaylı pazar analizi, fiyat trendleri ve risk raporlarını görüntülemek için lütfen listeden bir il ve ilçe seçin.
           </p>
         </div>
-        <div className="w-full max-w-xs">
-          <Select 
-            options={ISTANBUL_DISTRICTS}
+        <div className="w-full max-w-xs space-y-3">
+          <Select
+            options={cities}
+            value={cityParam}
+            onChange={handleCityChange}
+            placeholder="İl seçiniz..."
+          />
+          <Select
+            options={districts}
             onChange={handleDistrictChange}
             placeholder="İlçe seçiniz..."
           />
@@ -140,7 +124,7 @@ function AreaContent() {
   }
 
   // Find label for current district
-  const districtLabel = ISTANBUL_DISTRICTS.find(d => d.value === district)?.label || district;
+  const districtLabel = districts.find(d => d.value === district)?.label || district;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -157,10 +141,17 @@ function AreaContent() {
         </div>
         
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="w-[140px]">
+            <Select
+              options={cities}
+              value={cityParam}
+              onChange={handleCityChange}
+            />
+          </div>
           <div className="w-[180px]">
-            <Select 
-              options={ISTANBUL_DISTRICTS}
-              value={district} 
+            <Select
+              options={districts}
+              value={district}
               onChange={handleDistrictChange}
             />
           </div>

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import structlog
 from fastapi import APIRouter, Query
+from geoalchemy2 import Geography, Geometry
 from sqlalchemy import func, select
 from sqlalchemy.sql.expression import cast
 
@@ -29,6 +30,11 @@ from src.modules.maps.schemas import (
 )
 
 logger = structlog.get_logger()
+
+
+def _pg_lower(s: str) -> str:
+    """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
+    return s.replace("\u0130", "i").lower()
 
 router = APIRouter(
     prefix="/api/v1/maps",
@@ -84,8 +90,10 @@ async def get_map_properties(
         )
 
     # ST_MakeEnvelope(minLon, minLat, maxLon, maxLat, SRID)
+    # NOT: envelope Polygon tipidir, Property.location.type ise POINT(4326).
+    # Generic Geography'ye cast edilmeli (Polygon→POINT uyumsuzluk hatasi onlenir).
     envelope = func.ST_MakeEnvelope(min_lon, min_lat, max_lon, max_lat, 4326)
-    bbox_geog = cast(envelope, Property.location.type)
+    bbox_geog = cast(envelope, Geography)
 
     stmt = (
         select(
@@ -97,8 +105,8 @@ async def get_map_properties(
             Property.rooms,
             Property.net_area,
             Property.district,
-            func.ST_Y(func.ST_GeomFromWKB(Property.location.cast(None))).label("lat"),
-            func.ST_X(func.ST_GeomFromWKB(Property.location.cast(None))).label("lon"),
+            func.ST_Y(Property.location.cast(Geometry)).label("lat"),
+            func.ST_X(Property.location.cast(Geometry)).label("lon"),
         )
         .where(
             Property.status == "active",
@@ -171,17 +179,17 @@ async def get_heatmap(
             AreaAnalysis.avg_price_sqm_sale,
             func.ST_Y(
                 func.ST_Centroid(
-                    func.ST_GeomFromWKB(AreaAnalysis.boundary.cast(None))
+                    AreaAnalysis.boundary.cast(Geometry)
                 )
             ).label("lat"),
             func.ST_X(
                 func.ST_Centroid(
-                    func.ST_GeomFromWKB(AreaAnalysis.boundary.cast(None))
+                    AreaAnalysis.boundary.cast(Geometry)
                 )
             ).label("lon"),
         )
         .where(
-            func.lower(AreaAnalysis.city) == city.lower(),
+            func.lower(AreaAnalysis.city) == _pg_lower(city),
             AreaAnalysis.neighborhood.is_(None),
             AreaAnalysis.avg_price_sqm_sale.is_not(None),
             AreaAnalysis.boundary.is_not(None),

@@ -179,7 +179,15 @@ function mapFormToRequest(data: ValuationFormValues): Record<string, unknown> {
     isyeri: "IsYeri",
   };
 
+  // Şehir değeri: label olarak backend'e gönder
+  const cityMap: Record<string, string> = {
+    istanbul: "İstanbul",
+    ankara: "Ankara",
+    izmir: "İzmir",
+  };
+
   return {
+    city: cityMap[data.city] || data.city || "İstanbul",
     district: data.district,
     neighborhood: data.neighborhood || data.district,
     property_type: typeMap[data.property_type] || "Daire",

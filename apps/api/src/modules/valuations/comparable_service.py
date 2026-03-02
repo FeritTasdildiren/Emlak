@@ -27,6 +27,11 @@ from sqlalchemy import cast as sa_cast
 from src.models.area_analysis import AreaAnalysis
 from src.models.property import Property
 
+
+def _pg_lower(s: str) -> str:
+    """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
+    return s.replace("\u0130", "i").lower()
+
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -192,7 +197,7 @@ class ComparableService:
             Ilce bilgileri dict veya None (kayit yoksa).
         """
         stmt = select(AreaAnalysis).where(
-            func.lower(AreaAnalysis.district) == district.lower(),
+            func.lower(AreaAnalysis.district) == _pg_lower(district),
             AreaAnalysis.neighborhood.is_(None),
         )
 
@@ -239,8 +244,8 @@ class ComparableService:
         room_int = sa_cast(func.split_part(Property.rooms, "+", 1), SAInteger)
 
         filters = [
-            func.lower(Property.district) == district.lower(),
-            func.lower(Property.property_type) == property_type.lower(),
+            func.lower(Property.district) == _pg_lower(district),
+            func.lower(Property.property_type) == _pg_lower(property_type),
             Property.status == "active",
             Property.net_area.isnot(None),
             Property.net_area >= sqm_min,

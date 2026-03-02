@@ -3,8 +3,13 @@ Emlak Teknoloji Platformu - Property Search Router
 
 Arama endpoint'leri: FTS + trigram + filtre bazli ilan arama.
 
-Prefix: /api/v1/properties/search
+Prefix: /api/v1/properties
+Endpoint'ler: /search, /search/suggestions
 Guvenlik: Tum endpoint'ler JWT gerektirir (ActiveUser).
+
+NOT: Bu router'in prefix'i properties_router ile aynidir.
+main.py'da search_router ONCE kaydedilmelidir ki /search statik path,
+/{property_id} parametrik path'ten ONCE eslessin.
 """
 
 from __future__ import annotations
@@ -28,7 +33,7 @@ from src.modules.properties.search import (
 logger = structlog.get_logger()
 
 router = APIRouter(
-    prefix="/api/v1/properties/search",
+    prefix="/api/v1/properties",
     tags=["search"],
 )
 
@@ -83,7 +88,7 @@ class SuggestionResponse(BaseModel):
 
 
 @router.get(
-    "",
+    "/search",
     response_model=SearchResponse,
     summary="Ilan arama",
     description=(
@@ -157,7 +162,7 @@ async def search(
 
 
 @router.get(
-    "/suggestions",
+    "/search/suggestions",
     response_model=SuggestionResponse,
     summary="Arama onerileri",
     description="Autocomplete / typeahead icin ilan basligi onerileri dondurur.",

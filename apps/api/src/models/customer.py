@@ -103,6 +103,22 @@ class Customer(BaseModel, TenantMixin):
         comment="Müşteri etiketleri JSON dizisi",
     )
 
+    # ---------- Demografik Bilgiler ----------
+    gender: Mapped[str | None] = mapped_column(
+        String(10), nullable=True,
+        comment="Cinsiyet: erkek, kadin, belirtilmemis",
+    )
+    age_range: Mapped[str | None] = mapped_column(
+        String(10), nullable=True,
+        comment="Yaş aralığı: 18-25, 26-35, 36-45, 46-55, 56-65, 65+",
+    )
+    profession: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, comment="Meslek"
+    )
+    family_size: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, comment="Aile büyüklüğü"
+    )
+
     # ---------- Durum ----------
     lead_status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="warm",

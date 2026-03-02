@@ -28,6 +28,11 @@ if TYPE_CHECKING:
 from src.core.turkish import normalize_turkish
 from src.models.property import Property
 
+
+def _pg_lower(s: str) -> str:
+    """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
+    return s.replace("\u0130", "i").lower()
+
 # ---------- Sabitler ----------
 
 #: Minimum pg_trgm similarity esigi.
@@ -132,9 +137,9 @@ def _apply_filters(
     stmt = stmt.where(Property.status == status)
 
     if city is not None:
-        stmt = stmt.where(func.lower(Property.city) == city.lower())
+        stmt = stmt.where(func.lower(Property.city) == _pg_lower(city))
     if district is not None:
-        stmt = stmt.where(func.lower(Property.district) == district.lower())
+        stmt = stmt.where(func.lower(Property.district) == _pg_lower(district))
     if listing_type is not None:
         stmt = stmt.where(Property.listing_type == listing_type)
     if property_type is not None:
@@ -370,9 +375,9 @@ def _build_fts_query(
 
     # Opsiyonel filtreler
     if city is not None:
-        stmt = stmt.where(func.lower(Property.city) == city.lower())
+        stmt = stmt.where(func.lower(Property.city) == _pg_lower(city))
     if district is not None:
-        stmt = stmt.where(func.lower(Property.district) == district.lower())
+        stmt = stmt.where(func.lower(Property.district) == _pg_lower(district))
     if listing_type is not None:
         stmt = stmt.where(Property.listing_type == listing_type)
     if property_type is not None:

@@ -7,6 +7,8 @@ Ilan olusturma ve guncelleme icin Pydantic sema tanimlari.
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -91,3 +93,51 @@ class PropertyUpdate(BaseModel):
 
     features: dict | None = Field(default=None, description="Ek ozellikler JSON")
     status: str | None = Field(default=None, description="Ilan durumu")
+
+
+# ================================================================
+# Response Modelleri
+# ================================================================
+
+
+class PropertyDetailResponse(BaseModel):
+    """Ilan detay yaniti — tum alanlari icerir."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str = Field(description="Ilan UUID")
+    title: str = Field(description="Ilan basligi")
+    description: str | None = Field(default=None, description="Ilan aciklamasi")
+    property_type: str = Field(description="Emlak tipi")
+    listing_type: str = Field(description="Ilan tipi: sale, rent")
+    price: float = Field(description="Fiyat")
+    currency: str = Field(description="Para birimi (ISO 4217)")
+
+    # Ozellikler
+    rooms: str | None = Field(default=None, description="Oda sayisi (orn: 3+1)")
+    gross_area: float | None = Field(default=None, description="Brut alan (m2)")
+    net_area: float | None = Field(default=None, description="Net alan (m2)")
+    floor_number: int | None = Field(default=None, description="Bulundugu kat")
+    total_floors: int | None = Field(default=None, description="Toplam kat sayisi")
+    building_age: int | None = Field(default=None, description="Bina yasi")
+    heating_type: str | None = Field(default=None, description="Isitma tipi")
+    bathroom_count: int | None = Field(default=None, description="Banyo sayisi")
+    furniture_status: str | None = Field(default=None, description="Esya durumu")
+    building_type: str | None = Field(default=None, description="Yapi tipi")
+    facade: str | None = Field(default=None, description="Cephe yonu")
+
+    # Konum
+    city: str = Field(description="Il")
+    district: str = Field(description="Ilce")
+    neighborhood: str | None = Field(default=None, description="Mahalle")
+    address: str | None = Field(default=None, description="Acik adres")
+    latitude: float | None = Field(default=None, description="Enlem")
+    longitude: float | None = Field(default=None, description="Boylam")
+
+    # Ek veriler
+    photos: list = Field(default_factory=list, description="Fotograf URL listesi")
+    status: str = Field(description="Ilan durumu: active, passive, sold, rented")
+
+    # Zaman damgalari
+    created_at: datetime = Field(description="Olusturulma zamani")
+    updated_at: datetime = Field(description="Son guncelleme zamani")

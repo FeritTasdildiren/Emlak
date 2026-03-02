@@ -100,6 +100,21 @@ class Property(BaseModel, TenantMixin):
     heating_type: Mapped[str | None] = mapped_column(
         String(50), nullable=True, comment="Isıtma tipi"
     )
+    bathroom_count: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, comment="Banyo sayısı"
+    )
+    furniture_status: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="Eşya durumu: bos, esyali, yari_esyali",
+    )
+    building_type: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="Yapı tipi: betonarme, celik, ahsap, prefabrik, tas, tugla",
+    )
+    facade: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="Cephe yönü: kuzey, guney, dogu, bati vb.",
+    )
 
     # ---------- Konum ----------
     address: Mapped[str | None] = mapped_column(

@@ -646,11 +646,11 @@ def main():
         print("[1/7] Ofis")
         seed_office(cur)
 
-        print("[2/7] Kullanıcı (SKIP — already updated)")
-        # seed_user(cur)  # Already updated via direct SQL
+        print("[2/7] Kullanıcı")
+        seed_user(cur)
 
-        print("[3/7] Abonelik (SKIP — already elite)")
-        # seed_subscription(cur)  # Already updated to elite
+        print("[3/7] Abonelik")
+        seed_subscription(cur)
 
         print("[4/7] Müşteriler")
         seed_customers(cur)

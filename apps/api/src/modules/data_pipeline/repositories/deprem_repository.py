@@ -74,7 +74,7 @@ def upsert_deprem_risk(
             :pga_value,
             :soil_class,
             :fault_distance_km,
-            :data_sources::jsonb,
+            CAST(:data_sources AS jsonb),
             :provenance_version,
             :refresh_status,
             :last_refreshed_at,
