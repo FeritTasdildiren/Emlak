@@ -24,11 +24,13 @@ from src.models.customer import Customer
 from src.models.notification import Notification
 from src.models.prediction_log import PredictionLog
 from src.models.property import Property
+from src.modules.appointments.service import AppointmentService
 from src.modules.auth.dependencies import ActiveUser
 from src.modules.dashboard.schemas import (
     CustomersByStatus,
     DashboardStatsResponse,
     RecentActivity,
+    UpcomingAppointment,
 )
 
 logger = structlog.get_logger()
@@ -132,13 +134,15 @@ async def get_dashboard_stats(
         .limit(10)
     )
     val_result = await db.execute(val_stmt)
-    for row in val_result.all():
+    for idx, row in enumerate(val_result.all()):
         district = row.input_data.get("district", "") if row.input_data else ""
         activities.append(
             RecentActivity(
+                id=f"val-{idx}",
                 type="valuation",
                 title=f"Degerleme: {district}" if district else "Yeni degerleme",
-                timestamp=row.created_at,
+                description=f"{district} ilcesi icin fiyat degerleme raporu",
+                created_at=row.created_at,
             )
         )
 
@@ -150,12 +154,14 @@ async def get_dashboard_stats(
         .limit(10)
     )
     cust_result = await db.execute(cust_stmt)
-    for row in cust_result.all():
+    for idx, row in enumerate(cust_result.all()):
         activities.append(
             RecentActivity(
+                id=f"cust-{idx}",
                 type="customer",
                 title=f"Yeni musteri: {row.full_name}",
-                timestamp=row.created_at,
+                description="Musteri veritabanina eklendi",
+                created_at=row.created_at,
             )
         )
 
@@ -167,18 +173,39 @@ async def get_dashboard_stats(
         .limit(10)
     )
     prop_result = await db.execute(prop_stmt)
-    for row in prop_result.all():
+    for idx, row in enumerate(prop_result.all()):
         activities.append(
             RecentActivity(
+                id=f"prop-{idx}",
                 type="property",
                 title=f"Yeni ilan: {row.title}",
-                timestamp=row.created_at,
+                description="Portfoye yeni ilan eklendi",
+                created_at=row.created_at,
             )
         )
 
     # Tum aktiviteleri zamana gore sirala ve ilk 10'u al
-    activities.sort(key=lambda a: a.timestamp, reverse=True)
+    activities.sort(key=lambda a: a.created_at, reverse=True)
     recent_activities = activities[:10]
+
+    # --- 6. Yaklasan randevular (bugun ve sonrasi, scheduled, max 5) ---
+    upcoming_raw = await AppointmentService.get_upcoming(
+        db=db,
+        office_id=office_id,
+        limit=5,
+    )
+    upcoming_appointments = [
+        UpcomingAppointment(
+            id=str(appt.id),
+            title=appt.title,
+            appointment_date=appt.appointment_date,
+            customer_name=(
+                appt.customer.full_name if appt.customer else None
+            ),
+            status=appt.status,
+        )
+        for appt in upcoming_raw
+    ]
 
     return DashboardStatsResponse(
         portfolio_count=portfolio_count,
@@ -194,4 +221,5 @@ async def get_dashboard_stats(
         valuation_count_this_month=valuation_count_this_month,
         unread_notification_count=unread_notification_count,
         recent_activities=recent_activities,
+        upcoming_appointments=upcoming_appointments,
     )

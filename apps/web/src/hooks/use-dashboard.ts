@@ -17,6 +17,13 @@ export interface DashboardStats {
     description: string;
     created_at: string;
   }>;
+  upcoming_appointments: Array<{
+    id: string;
+    title: string;
+    appointment_date: string;
+    customer_name: string | null;
+    status: string;
+  }>;
 }
 
 /**

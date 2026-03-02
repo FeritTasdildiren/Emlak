@@ -40,6 +40,7 @@ from src.modules.admin.bank_rates_router import router as admin_bank_rates_route
 from src.modules.admin.dlq_router import router as admin_dlq_router
 from src.modules.admin.outbox_monitor_router import router as admin_outbox_router
 from src.modules.admin.refresh_alerts import router as admin_refresh_router
+from src.modules.appointments.router import router as appointments_router
 from src.modules.areas.router import router as areas_router
 from src.modules.audit.audit_router import router as audit_router
 from src.modules.auth.router import router as auth_router
@@ -259,6 +260,9 @@ app.include_router(audit_router)
 # --- CRM Routers (JWT GEREKTiRiR) ---
 app.include_router(customers_router)
 app.include_router(matches_router)
+
+# --- Appointments Router (JWT GEREKTiRiR) ---
+app.include_router(appointments_router)
 
 # --- Dashboard Router (JWT GEREKTiRiR) ---
 app.include_router(dashboard_router)

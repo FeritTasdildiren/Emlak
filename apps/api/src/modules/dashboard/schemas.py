@@ -24,9 +24,21 @@ class CustomersByStatus(BaseModel):
 class RecentActivity(BaseModel):
     """Son aktivite ogesi."""
 
+    id: str = Field(description="Aktivite benzersiz ID'si")
     type: str = Field(description="Aktivite tipi: valuation, customer, property")
     title: str = Field(description="Aktivite basligi")
-    timestamp: datetime = Field(description="Aktivite zamani")
+    description: str = Field(default="", description="Aktivite aciklamasi")
+    created_at: datetime = Field(description="Aktivite zamani")
+
+
+class UpcomingAppointment(BaseModel):
+    """Yaklasan randevu ozet bilgisi."""
+
+    id: str = Field(description="Randevu UUID")
+    title: str = Field(description="Randevu basligi")
+    appointment_date: datetime = Field(description="Randevu tarihi ve saati")
+    customer_name: str | None = Field(default=None, description="Musteri adi")
+    status: str = Field(description="Randevu durumu")
 
 
 class DashboardStatsResponse(BaseModel):
@@ -47,4 +59,8 @@ class DashboardStatsResponse(BaseModel):
     recent_activities: list[RecentActivity] = Field(
         default_factory=list,
         description="Son 10 aktivite (degerleme + musteri + ilan)",
+    )
+    upcoming_appointments: list[UpcomingAppointment] = Field(
+        default_factory=list,
+        description="Yaklasan 5 randevu (scheduled, tarih >= bugun)",
     )
