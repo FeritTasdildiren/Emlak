@@ -138,7 +138,7 @@ export function useWebSocket(
 
     reconnectTimeoutRef.current = setTimeout(() => {
       reconnectAttemptRef.current += 1;
-      connect(); // eslint-disable-line @typescript-eslint/no-use-before-define
+      connect();  
     }, delay);
   }, [updateState]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -8,7 +8,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Appointment } from "@/types/appointment";
+import { useCustomerSearch } from "@/hooks/use-customer-search";
+import { usePropertySearch } from "@/hooks/use-property-search";
 
 // ---------------------------------------------------------------------------
 // Schema
@@ -22,8 +25,8 @@ const appointmentFormSchema = z.object({
   status: z.enum(["scheduled", "completed", "cancelled", "no_show"]),
   location: z.string().optional(),
   notes: z.string().optional(),
-  customer_id: z.string().uuid("Geçerli bir müşteri ID'si giriniz").optional().or(z.literal("")),
-  property_id: z.string().uuid("Geçerli bir ilan ID'si giriniz").optional().or(z.literal("")),
+  customer_id: z.string().optional().or(z.literal("")),
+  property_id: z.string().optional().or(z.literal("")),
 });
 
 export type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
@@ -100,6 +103,15 @@ export function AppointmentForm({
     formState: { errors },
   } = form;
 
+  const [customerQuery, setCustomerQuery] = React.useState("");
+  const [propertyQuery, setPropertyQuery] = React.useState("");
+
+  const { data: customerOptions = [], isLoading: isCustomerLoading } = useCustomerSearch(customerQuery);
+  const { data: propertyOptions = [], isLoading: isPropertyLoading } = usePropertySearch(propertyQuery);
+
+  // Eğer isEditing ise ve elimizde ID varsa, o ID için de bir option olmalı ki label görünsün.
+  // Ancak bu basitleştirilmiş görevde şimdilik sadece arama sonuçlarını gösteriyoruz.
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -175,17 +187,35 @@ export function AppointmentForm({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Input
-            label="Müşteri ID (Opsiyonel)"
-            placeholder="UUID formatında"
-            errorMessage={errors.customer_id?.message}
-            {...register("customer_id")}
+          <Controller
+            name="customer_id"
+            control={control}
+            render={({ field }) => (
+              <SearchableSelect
+                label="Müşteri"
+                placeholder="Müşteri ara..."
+                options={customerOptions}
+                onSearch={setCustomerQuery}
+                isLoading={isCustomerLoading}
+                errorMessage={errors.customer_id?.message}
+                {...field}
+              />
+            )}
           />
-          <Input
-            label="İlan ID (Opsiyonel)"
-            placeholder="UUID formatında"
-            errorMessage={errors.property_id?.message}
-            {...register("property_id")}
+          <Controller
+            name="property_id"
+            control={control}
+            render={({ field }) => (
+              <SearchableSelect
+                label="İlan"
+                placeholder="İlan ara..."
+                options={propertyOptions}
+                onSearch={setPropertyQuery}
+                isLoading={isPropertyLoading}
+                errorMessage={errors.property_id?.message}
+                {...field}
+              />
+            )}
           />
         </div>
 

@@ -2,6 +2,45 @@
 
 ---
 
+## [RAPOR-013] Appointment CRUD Backend (TASK-200)
+| Alan | Deger |
+|------|-------|
+| **Durum** | TAMAMLANDI |
+| **Baslangic** | 2026-03-02 |
+| **Bitis** | 2026-03-02 |
+| **Etkilenen Dosyalar** | models/appointment.py (YENI), migrations/versions/025_appointments.py (YENI), models/__init__.py, modules/appointments/__init__.py (YENI), modules/appointments/schemas.py (YENI), modules/appointments/service.py (YENI), modules/appointments/router.py (YENI), modules/dashboard/schemas.py, modules/dashboard/router.py, main.py, CLAUDE.md |
+
+### Hedef
+Randevu (Appointment) sistemi icin backend modulunu olusturmak: Model + Migration 025 + RLS + CRUD API (6 endpoint) + Dashboard entegrasyonu.
+
+### Yapilanlar
+- [x] Appointment SQLAlchemy modeli olusturuldu (BaseModel + TenantMixin, 5 indeks, 4 relationship)
+- [x] Alembic migration 025 olusturuldu (CREATE TABLE + 5 indeks + RLS ENABLE/FORCE + tenant_isolation policy + platform_admin_bypass policy + GRANT app_user)
+- [x] models/__init__.py'ye Appointment import + __all__ guncellendi
+- [x] src/modules/appointments/ modulu olusturuldu (3 dosya: schemas.py, service.py, router.py)
+- [x] AppointmentCreate/AppointmentUpdate/AppointmentResponse/AppointmentListResponse Pydantic schemalari
+- [x] AppointmentService: 6 static metod (create, list, get_upcoming, get_by_id, update, delete)
+- [x] Router: 6 endpoint (POST, GET list, GET /upcoming, GET /{id}, PATCH /{id}, DELETE /{id})
+- [x] GET /upcoming statik path parametrik /{id}'den ONCE tanimlanarak route conflict onlendi
+- [x] Dashboard entegrasyonu: UpcomingAppointment schema + get_upcoming (5 randevu) DashboardStatsResponse'a eklendi
+- [x] main.py'e appointments_router include edildi
+- [x] ruff check: 0 yeni hata (6 pre-existing TC003/TC002/B008 — tum projede kabul edilmis)
+- [x] CLAUDE.md guncellendi: migration zinciri 025, endpoint sayisi 109, modul sayisi 19+appointments
+
+### Kararlar ve Notlar
+- Customer modeli pattern'i takip edildi (BaseModel + TenantMixin + office_id FK)
+- customer_id ve property_id opsiyonel (nullable=True, SET NULL ondelete)
+- user_id zorunlu (randevuyu olusturan danisman, CASCADE ondelete)
+- Hard delete secildi (soft delete yerine) — randevular CRM verisi degil, takvim verisi
+- platform_admin_bypass RLS policy eklendi (diger tablolardaki pattern)
+- Schema'da customer_id/property_id string olarak alinip service'te UUID'ye donusturuluyor (frontend uyumlulugu)
+- Response'ta user_name, customer_name, property_title iliskileri selectin lazy loading ile yukleniyor
+
+### Sonuc
+10 dosya olusturuldu/guncellendi. 6 yeni endpoint (POST, GET list, GET upcoming, GET detail, PATCH, DELETE). Migration 025 hazir. Dashboard'a upcoming_appointments eklendi.
+
+---
+
 ## [RAPOR-012] Backend Duzeltmeler — Sprint FIX-6 (TASK-197)
 | Alan | Deger |
 |------|-------|
