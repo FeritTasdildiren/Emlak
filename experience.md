@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-03-02 - Backend Duzeltmeler Sprint FIX-6 (TASK-197)
+### Gorev: GET /properties/{id}, GET /dashboard/stats, Customer demographics fix
+
+- [HATA] Migration ile DB'ye kolon eklendi ama SQLAlchemy model guncellenmedi (property: bathroom_count/furniture_status/building_type/facade, customer: gender/age_range/profession/family_size) → Her migration sonrasi model.py sync kontrolu ZORUNLU. Alembic autogenerate kullanilsa bile model eslesmesi dogrulanmali
+- [KARAR] PostGIS GEOGRAPHY → lat/lon icin ST_Y(ST_GeomFromWKB(location.cast(None))) pattern'i kullanildi → maps/router.py'deki mevcut pattern takip edildi. Tutarlilik icin her zaman ayni pattern kullanilmali
+- [KARAR] Dashboard stats icin conditional COUNT (case/when) ile tek SQL sorgusu → 5 ayri COUNT sorgusu yerine 1 sorgu ile portfolio ve customer istatistikleri alinir. N+1 problemi onlenir
+- [PATTERN] Recent activities 3 tablodan ayri sorgu + Python merge sort → SQL UNION ALL da olabilirdi ama farkli kolonlar (input_data vs full_name vs title) nedeniyle Python merge daha temiz. Limit 10 ile performans sorunu yok
+- [UYARI] _to_response() helper fonksiyonlari model'deki TUM alanlari acik sekilde map'lemeli → from_attributes=True ile otomatik mapping de yapilabilir ama explicit mapping daha guvenli, eksik alan fark edilir
+- [PATTERN] Pydantic datetime import'u TYPE_CHECKING disinda tutulmali → `from __future__ import annotations` aktifken Pydantic runtime'da tip cozumleyemez. TC003 ruff uyarisi ignore edilmeli
+
+---
+
 ## 2026-03-01 - Vitrin Seed Genisleme + Ankara/Izmir Degerleme Verisi (TASK-194)
 ### Gorev: 8 yeni vitrin seed + Ankara 25 ilce + Izmir 29 ilce egitim verisi hazirlama
 

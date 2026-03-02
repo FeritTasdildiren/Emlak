@@ -2,6 +2,42 @@
 
 ---
 
+## [RAPOR-012] Backend Duzeltmeler — Sprint FIX-6 (TASK-197)
+| Alan | Deger |
+|------|-------|
+| **Durum** | TAMAMLANDI |
+| **Baslangic** | 2026-03-02 |
+| **Bitis** | 2026-03-02 |
+| **Etkilenen Dosyalar** | models/property.py, models/customer.py, modules/properties/router.py, modules/properties/schemas.py, modules/dashboard/__init__.py (YENI), modules/dashboard/router.py (YENI), modules/dashboard/schemas.py (YENI), modules/customers/router.py, main.py |
+
+### Hedef
+3 backend duzeltme: GET /properties/{id} endpoint, GET /dashboard/stats endpoint, Customer demographics serialization fix.
+
+### Yapilanlar
+- [x] FIX 1: GET /api/v1/properties/{id} endpoint eklendi (JWT + tenant izolasyon + 404 + PostGIS lat/lon)
+- [x] Property model'e 4 eksik kolon eklendi: bathroom_count, furniture_status, building_type, facade (migration 022 DB'ye eklenmis, model eslenmemisti)
+- [x] PropertyDetailResponse schema olusturuldu (24 alan)
+- [x] PostGIS GEOGRAPHY → lat/lon cikarimi ST_Y/ST_X ile tek sorguda
+- [x] FIX 2: GET /api/v1/dashboard/stats endpoint olusturuldu (yeni modul: src/modules/dashboard/)
+- [x] DashboardStatsResponse: portfolio_count, active_portfolio_count, customer_count, customers_by_status, valuation_count_this_month, unread_notification_count, recent_activities
+- [x] Verimli SQL: conditional COUNT (case/when) ile tek sorguda tum sayilar
+- [x] Recent activities: PredictionLog + Customer + Property tablosundan son 10 aktivite, Python merge sort
+- [x] main.py'e dashboard_router include edildi
+- [x] FIX 3: Customer model'e 4 eksik demografik kolon eklendi: gender, age_range, profession, family_size (migration 023 DB'ye eklenmis, model eslenmemisti)
+- [x] _to_response() fonksiyonuna 4 demografik alan eklendi
+- [x] CustomerCreate, CustomerUpdate schema'larda ve CustomerResponse'da alanlar zaten mevcuttu
+- [x] ruff check: 0 yeni hata (71 pre-existing, hepsi kabul edilmis N806/TC*/RUF)
+
+### Kararlar ve Notlar
+- Property/Customer model'lerinde DB migration ile kolon eklenmis ama SQLAlchemy model guncellenmemisti → Model-migration sync kontrolu yapilmali
+- Dashboard stats icin ayri DB sorgusu yerine conditional COUNT ile tek sorgu kullanildi → Performans optimizasyonu
+- Notification count user_id bazli (kullanici kendi bildirimlerini gorur), diger istatistikler office_id bazli
+
+### Sonuc
+3/3 duzeltme basariyla tamamlandi. Yeni endpoint'ler: GET /properties/{id}, GET /dashboard/stats. Customer demographics serialization calisiyor.
+
+---
+
 ## [RAPOR-011] Vitrin Seed Genisleme + Ankara/Izmir Degerleme Verisi (TASK-194)
 | Alan | Deger |
 |------|-------|
