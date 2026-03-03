@@ -133,9 +133,10 @@ export function mapPropertyToFormValues(property: Property): Partial<PropertyFor
     floor: property.floor ?? undefined,
     total_floors: property.total_floors ?? undefined,
     building_age: property.building_age ?? undefined,
+    net_area: property.area_sqm,
+    gross_area: property.area_sqm,
     listing_type: property.listing_type as PropertyFormValues["listing_type"],
     property_type: property.property_type as PropertyFormValues["property_type"],
     status: (property.status === "active" ? "active" : "draft") as PropertyFormValues["status"],
-    // Add any other specific mappings if needed
   };
 }

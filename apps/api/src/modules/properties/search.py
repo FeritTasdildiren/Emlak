@@ -134,7 +134,8 @@ def _apply_filters(
     max_area: float | None = None,
 ) -> Select:
     """Ortak filtreleri SELECT ifadesine uygula."""
-    stmt = stmt.where(Property.status == status)
+    if status != "all":
+        stmt = stmt.where(Property.status == status)
 
     if city is not None:
         stmt = stmt.where(func.lower(Property.city) == _pg_lower(city))
@@ -362,7 +363,7 @@ def _build_fts_query(
         select(Property)
         .where(
             Property.search_vector.op("@@")(ts_query),
-            Property.status == status,
+            *([] if status == "all" else [Property.status == status]),
         )
         .order_by(
             func.ts_rank_cd(

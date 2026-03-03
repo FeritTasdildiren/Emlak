@@ -17,9 +17,15 @@ async function fetchSearch(filters: SearchFilters): Promise<SearchResponse> {
   if (filters.district) params.set("district", filters.district);
   if (filters.property_type !== "all")
     params.set("property_type", filters.property_type);
-  if (filters.listing_type !== "all")
-    params.set("listing_type", filters.listing_type);
-  if (filters.status !== "all") params.set("status", filters.status);
+  if (filters.listing_type !== "all") {
+    const apiListingType = filters.listing_type === "satilik" ? "sale" : "rent";
+    params.set("listing_type", apiListingType);
+  }
+  if (filters.status !== "all") {
+    params.set("status", filters.status);
+  } else {
+    params.set("status", "all");
+  }
   if (filters.min_price !== undefined)
     params.set("min_price", String(filters.min_price));
   if (filters.max_price !== undefined)

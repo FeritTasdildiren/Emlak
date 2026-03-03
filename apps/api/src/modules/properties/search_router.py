@@ -106,7 +106,7 @@ async def search(
         default=None, description="Emlak tipi: konut, ticari, arsa"
     ),
     listing_type: str | None = Query(
-        default=None, description="Ilan tipi: satilik, kiralik"
+        default=None, description="Ilan tipi: sale, rent"
     ),
     status: str = Query(default="active", description="Ilan durumu: active, sold, rented, draft"),
     min_price: int | None = Query(default=None, ge=0, description="Minimum fiyat"),

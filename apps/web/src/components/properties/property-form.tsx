@@ -176,7 +176,7 @@ const infrastructureOptions = [
 export interface PropertyFormProps {
   defaultValues?: Partial<PropertyFormValues>
   isEditing?: boolean
-  onSubmit?: (data: PropertyFormValues) => void
+  onSubmit?: (data: PropertyFormValues) => void | Promise<void>
   className?: string
 }
 
@@ -304,7 +304,7 @@ export function PropertyForm({
     setLoading(true)
     try {
       if (onSubmitProp) {
-        onSubmitProp(data)
+        await onSubmitProp(data)
       } else {
         console.log("Form verileri:", data)
         // Simulasyon: Basarili kayit sonrasi ID uret
@@ -313,6 +313,9 @@ export function PropertyForm({
         setShowSuccessDialog(true)
         toast("İlan başarıyla kaydedildi!")
       }
+    } catch (error) {
+      console.error("Form gönderim hatası:", error)
+      // toast is already handled in handleSubmit in the parent
     } finally {
       setLoading(false)
     }

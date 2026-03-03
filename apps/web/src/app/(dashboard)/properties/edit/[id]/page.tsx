@@ -21,7 +21,7 @@ export default function EditPropertyPage({
   const { id } = use(params);
   const router = useRouter();
   const { property, isLoading, isError } = usePropertyDetail(id);
-  const { mutate: updateProperty } = useUpdateProperty();
+  const { mutateAsync: updateProperty } = useUpdateProperty();
 
   if (isLoading) {
     return (
@@ -60,19 +60,14 @@ export default function EditPropertyPage({
     );
   }
 
-  const handleSubmit = (data: PropertyFormValues) => {
-    updateProperty(
-      { id, data },
-      {
-        onSuccess: () => {
-          toast("İlan başarıyla güncellendi!");
-          router.push(`/properties/${id}`);
-        },
-        onError: (error: Error) => {
-          toast(error?.message || "Güncelleme sırasında bir hata oluştu");
-        },
-      }
-    );
+  const handleSubmit = async (data: PropertyFormValues) => {
+    try {
+      await updateProperty({ id, data });
+      toast("İlan başarıyla güncellendi!");
+      router.push(`/properties/${id}`);
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Güncelleme sırasında bir hata oluştu");
+    }
   };
 
   return (
