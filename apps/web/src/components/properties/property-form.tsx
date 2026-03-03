@@ -30,6 +30,8 @@ import {
   getSubCategories,
   type DetailedPropertyType,
 } from "@/lib/location-data"
+import { api } from "@/lib/api-client"
+import { X, Camera } from "lucide-react"
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -1233,6 +1235,76 @@ export function PropertyForm({
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Taslak olarak kaydedilen ilanlar yayınlanmaz.
           </p>
+        </FormSection>
+      </div>
+
+      {/* Bolum 7: Fotoğraflar */}
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm sm:p-6">
+        <FormSection title="Fotoğraflar">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {/* Mevcut fotoğraflar */}
+              {watch("photos")?.map((photo, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group bg-gray-50">
+                  <img src={photo} alt={`Fotoğraf ${index + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = watch("photos") || []
+                      setValue("photos", current.filter((_, i) => i !== index))
+                    }}
+                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+
+              {/* Fotoğraf Ekle Butonu */}
+              <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 cursor-pointer flex flex-col items-center justify-center transition-all">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = e.target.files
+                    if (!files || files.length === 0) return
+
+                    const formData = new FormData()
+                    for (let i = 0; i < files.length; i++) {
+                      formData.append("files", files[i])
+                    }
+
+                    try {
+                      setLoading(true)
+                      const res = await api.postFormData<{ uploaded?: Array<{ original_url: string }> }>("/listings/photos/batch", formData)
+                      const uploaded = res.uploaded || []
+                      if (uploaded.length > 0) {
+                        const current = watch("photos") || []
+                        const newUrls = uploaded.map(u => u.original_url)
+                        setValue("photos", [...current, ...newUrls])
+                        toast(`${newUrls.length} fotoğraf başarıyla yüklendi.`)
+                      } else {
+                        toast("Herhangi bir fotoğraf yüklenemedi.")
+                      }
+                    } catch (err) {
+                      console.error("Fotoğraf yükleme hatası:", err)
+                      toast("Fotoğraflar yüklenirken bir hata oluştu.")
+                    } finally {
+                      setLoading(false)
+                    }
+                  }}
+                  disabled={loading}
+                />
+                <Camera className="h-6 w-6 text-gray-400 mb-2" />
+                <span className="text-xs font-medium text-gray-500">Fotoğraf Ekle</span>
+              </label>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Maksimum 10 fotoğraf yükleyebilirsiniz. JPEG, PNG veya WebP formatları desteklenir.
+            </p>
+          </div>
         </FormSection>
       </div>
 

@@ -14,66 +14,17 @@ import type { Showcase } from "@/types/showcase";
 import type { Property } from "@/types/property";
 import { cn } from "@/lib/utils";
 import { Check, Loader2 } from "lucide-react";
+import { mapApiToProperty, type ApiProperty } from "@/lib/property-mapper";
 
 // ─── Backend Response Type ───────────────────────────────────────
 
-interface ApiPropertyItem {
-  id: string;
-  title: string;
-  description?: string | null;
-  property_type: string;
-  listing_type: string;
-  price: number;
-  currency: string;
-  rooms: string | null;
-  gross_area: number | null;
-  net_area: number | null;
-  floor_number: number | null;
-  total_floors: number | null;
-  building_age: number | null;
-  city: string;
-  district: string;
-  neighborhood: string | null;
-  status: string;
-  photos: string[];
-  created_at: string;
-}
-
 interface SearchApiResponse {
-  items: ApiPropertyItem[];
+  items: ApiProperty[];
   total: number;
   page: number;
   per_page: number;
   total_pages: number;
   query: string | null;
-}
-
-function mapApiToProperty(item: ApiPropertyItem): Property {
-  return {
-    id: item.id,
-    title: item.title,
-    property_type: item.property_type as Property["property_type"],
-    listing_type: (item.listing_type === "sale" ? "satilik" : "kiralik") as Property["listing_type"],
-    price: item.price,
-    currency: item.currency,
-    area_sqm: item.net_area ?? item.gross_area ?? 0,
-    room_count: item.rooms ?? null,
-    floor: item.floor_number,
-    total_floors: item.total_floors,
-    building_age: item.building_age,
-    heating_type: null,
-    bathroom_count: null,
-    furniture_status: null,
-    building_type: null,
-    facade: null,
-    city: item.city,
-    district: item.district,
-    neighborhood: item.neighborhood,
-    address: null,
-    status: item.status as Property["status"],
-    created_at: item.created_at,
-    updated_at: item.created_at,
-  };
 }
 
 // ─── Component ───────────────────────────────────────────────────

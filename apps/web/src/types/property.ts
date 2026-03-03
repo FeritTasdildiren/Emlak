@@ -52,6 +52,8 @@ export interface Property {
   district: string;
   neighborhood: string | null;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   status: PropertyStatus;
   description?: string | null;
   photos?: string[];

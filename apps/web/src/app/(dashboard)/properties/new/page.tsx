@@ -1,11 +1,30 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PropertyForm } from "@/components/properties/property-form"
+import { PropertyFormValues } from "@/components/properties/property-form-schema"
+import { useCreateProperty } from "@/hooks/use-properties"
+import { toast } from "@/components/ui/toast"
 
 export default function NewPropertyPage() {
+  const router = useRouter()
+  const createProperty = useCreateProperty()
+
+  const handleSubmit = (data: PropertyFormValues) => {
+    createProperty.mutate(data, {
+      onSuccess: (res) => {
+        toast("İlan başarıyla oluşturuldu.")
+        router.push(`/properties/${res.id}`)
+      },
+      onError: (error: Error) => {
+        toast(error.message || "İlan oluşturulurken bir hata oluştu.")
+      },
+    })
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -24,7 +43,10 @@ export default function NewPropertyPage() {
       </div>
 
       {/* Form */}
-      <PropertyForm className="max-w-3xl" />
+      <PropertyForm 
+        className="max-w-3xl" 
+        onSubmit={handleSubmit}
+      />
     </div>
   )
 }

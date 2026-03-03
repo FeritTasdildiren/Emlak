@@ -59,6 +59,7 @@ class PropertyCreate(BaseModel):
 
     # Ek veriler
     features: dict | None = Field(default=None, description="Ek ozellikler JSON")
+    photos: list | None = Field(default=None, description="Fotograf URL listesi")
     status: str = Field(default="active", description="Ilan durumu: active, draft")
 
 
@@ -90,8 +91,11 @@ class PropertyUpdate(BaseModel):
     district: str | None = Field(default=None, max_length=100, description="Ilce")
     neighborhood: str | None = Field(default=None, max_length=100, description="Mahalle")
     address: str | None = Field(default=None, max_length=500, description="Acik adres")
+    lat: float | None = Field(default=None, ge=-90, le=90, description="Enlem")
+    lon: float | None = Field(default=None, ge=-180, le=180, description="Boylam")
 
     features: dict | None = Field(default=None, description="Ek ozellikler JSON")
+    photos: list | None = Field(default=None, description="Fotograf URL listesi")
     status: str | None = Field(default=None, description="Ilan durumu")
 
 

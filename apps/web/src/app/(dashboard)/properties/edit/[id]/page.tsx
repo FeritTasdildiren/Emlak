@@ -11,6 +11,7 @@ import { useUpdateProperty } from "@/hooks/use-properties";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
+import { mapPropertyToFormValues } from "@/lib/property-mapper";
 
 export default function EditPropertyPage({
   params,
@@ -61,7 +62,7 @@ export default function EditPropertyPage({
 
   const handleSubmit = (data: PropertyFormValues) => {
     updateProperty(
-      { id, data: data as unknown as Record<string, unknown> },
+      { id, data },
       {
         onSuccess: () => {
           toast("İlan başarıyla güncellendi!");
@@ -94,7 +95,7 @@ export default function EditPropertyPage({
       {/* Form */}
       <PropertyForm
         isEditing
-        defaultValues={property as unknown as PropertyFormValues}
+        defaultValues={mapPropertyToFormValues(property)}
         className="max-w-3xl"
         onSubmit={handleSubmit}
       />

@@ -116,6 +116,9 @@ const baseSchema = z.object({
     .number({ message: "Net alan giriniz" })
     .min(1, "Net alan en az 1 m² olmalıdır")
     .max(50000, "Net alan en fazla 50.000 m² olabilir"),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  photos: z.array(z.string()).optional(),
   status: z.enum(["active", "draft"]),
 })
 

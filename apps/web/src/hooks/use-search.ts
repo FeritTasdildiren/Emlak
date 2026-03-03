@@ -6,6 +6,7 @@ import type {
   SuggestionsResponse,
 } from "@/types/property";
 import { api } from "@/lib/api-client";
+import { mapApiToProperty, type ApiProperty } from "@/lib/property-mapper";
 
 // --- API implementations ---
 
@@ -31,9 +32,27 @@ async function fetchSearch(filters: SearchFilters): Promise<SearchResponse> {
   params.set("page", String(filters.page));
   params.set("per_page", String(filters.per_page));
 
-  return api.get<SearchResponse>(
-    `/properties/search?${params.toString()}`
-  );
+  const res = await api.get<{
+    items: ApiProperty[];
+    total: number;
+    page: number;
+    per_page: number;
+    total_pages?: number;
+    query: string;
+  }>(`/properties/search?${params.toString()}`);
+
+  const total = res.total || 0;
+  const per_page = res.per_page || 10;
+  const total_pages = res.total_pages || Math.ceil(total / per_page);
+
+  return {
+    ...res,
+    items: res.items.map(mapApiToProperty),
+    total,
+    per_page,
+    total_pages: total_pages || 1,
+    query: res.query || "",
+  };
 }
 
 async function fetchSuggestions(query: string): Promise<string[]> {

@@ -73,6 +73,8 @@ function mapPropertySummary(p: ApiPropertySummary): Property {
     district: p.district ?? "",
     neighborhood: p.neighborhood,
     address: null,
+    latitude: null,
+    longitude: null,
     status: "active" as Property["status"],
     created_at: "",
     updated_at: "",
