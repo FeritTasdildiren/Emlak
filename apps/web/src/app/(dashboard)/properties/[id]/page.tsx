@@ -1,12 +1,20 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePropertyDetail } from "@/hooks/use-property-detail";
+import { usePropertyMatches } from "@/hooks/use-property-matches";
+import { useCreateAppointment } from "@/hooks/use-appointments";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Modal } from "@/components/ui/modal";
+import { AppointmentForm, AppointmentFormValues } from "@/components/appointment-form";
+import { PropertyMatchesModal } from "@/components/matches/property-matches-modal";
+import { toast } from "@/components/ui/toast";
 import {
   ChevronLeft,
   Edit,
@@ -19,12 +27,20 @@ import {
   Layers,
   Flame,
   User,
+  Users,
   Info,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   heatingTypeOptions,
 } from "@/components/properties/property-form-schema";
+
+interface MatchResponse {
+  matches_found: number;
+  matches_created: number;
+  top_score: number | null;
+  execution_time_ms: number;
+}
 
 const statusConfig: Record<
   string,
@@ -54,7 +70,56 @@ export default function PropertyDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { property, isLoading, isError } = usePropertyDetail(id);
+  const { total: matchesTotal } = usePropertyMatches(id);
+  const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
+  const [isMatchesOpen, setIsMatchesOpen] = useState(false);
+
+  // Müşteri eşleştirme mutation
+  const matchMutation = useMutation<MatchResponse, ApiError>({
+    mutationFn: () => api.post(`/matches/run/property/${id}`, {}),
+    onSuccess: (data) => {
+      if (data.matches_found > 0) {
+        toast(`${data.matches_found} müşteri eşleşti! (Skor: ${data.top_score || 0})`, "success");
+        queryClient.invalidateQueries({ queryKey: ["matches", "property", id] });
+        setIsMatchesOpen(true);
+      } else {
+        toast("Uygun müşteri bulunamadı", "info");
+      }
+    },
+    onError: (error) => {
+      toast(error.detail || error.message || "Eşleştirme başlatılamadı", "error");
+    },
+  });
+
+  // Randevu oluşturma mutation
+  const createAppointment = useCreateAppointment();
+
+  const handleAppointmentSubmit = (data: AppointmentFormValues) => {
+    createAppointment.mutate(
+      {
+        title: data.title,
+        description: data.description,
+        appointment_date: new Date(data.appointment_date).toISOString(),
+        duration_minutes: parseInt(data.duration_minutes, 10),
+        status: data.status,
+        location: data.location,
+        notes: data.notes,
+        customer_id: data.customer_id || undefined,
+        property_id: id,
+      },
+      {
+        onSuccess: () => {
+          toast("Randevu oluşturuldu", "success");
+          setIsAppointmentOpen(false);
+        },
+        onError: (error) => {
+          toast(error.detail || error.message || "Randevu oluşturulamadı", "error");
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return <PropertyDetailSkeleton />;
@@ -223,21 +288,61 @@ export default function PropertyDetailPage({
           <Card className="p-6">
             <h4 className="font-bold mb-4">Hızlı Aksiyonlar</h4>
             <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" disabled>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                loading={matchMutation.isPending}
+                onClick={() => matchMutation.mutate()}
+              >
                 <User className="mr-2 h-4 w-4" />
-                Müşteri Eşleştir (Yakında)
+                Müşteri Eşleştir
               </Button>
-              <Button variant="outline" className="w-full justify-start" disabled>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setIsMatchesOpen(true)}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Eşleşmeleri Gör {matchesTotal > 0 && `(${matchesTotal})`}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setIsAppointmentOpen(true)}
+              >
                 <Calendar className="mr-2 h-4 w-4" />
-                Randevu Oluştur (Yakında)
+                Randevu Oluştur
               </Button>
             </div>
           </Card>
+
+          {/* Randevu Oluştur Modal */}
+          <Modal
+            isOpen={isAppointmentOpen}
+            onClose={() => setIsAppointmentOpen(false)}
+            title="Randevu Oluştur"
+            className="max-w-2xl"
+          >
+            <AppointmentForm
+              onSubmit={handleAppointmentSubmit}
+              isLoading={createAppointment.isPending}
+              defaultValues={{
+                property_id: id,
+              } as never}
+            />
+          </Modal>
+
+          <PropertyMatchesModal
+            isOpen={isMatchesOpen}
+            onClose={() => setIsMatchesOpen(false)}
+            propertyId={id}
+          />
         </div>
       </div>
     </div>
   );
 }
+
 
 function FeatureItem({
   icon: Icon,

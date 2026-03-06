@@ -31,7 +31,8 @@ from src.models.property import Property
 
 def _pg_lower(s: str) -> str:
     """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
-    s = s.replace("\u0130", "i").replace("\u0131", "i").lower()
+    # Sadece İ (U+0130) → i dönüşümü. ı (U+0131) zaten küçük harf, lower() doğru işler.
+    s = s.replace("\u0130", "i").lower()
     return s
 
 # ---------- Sabitler ----------
@@ -135,7 +136,8 @@ def _apply_filters(
     max_area: float | None = None,
 ) -> Select:
     """Ortak filtreleri SELECT ifadesine uygula."""
-    stmt = stmt.where(Property.status == status)
+    if status and status != "all":
+        stmt = stmt.where(Property.status == status)
 
     if city is not None:
         stmt = stmt.where(func.lower(Property.city) == _pg_lower(city))
@@ -359,12 +361,13 @@ def _build_fts_query(
     """
     ts_query = func.to_tsquery("simple", literal_column(f"'{ts_query_str}'"))
 
+    status_filter = [Property.search_vector.op("@@")(ts_query)]
+    if status and status != "all":
+        status_filter.append(Property.status == status)
+
     stmt = (
         select(Property)
-        .where(
-            Property.search_vector.op("@@")(ts_query),
-            Property.status == status,
-        )
+        .where(*status_filter)
         .order_by(
             func.ts_rank_cd(
                 Property.search_vector,

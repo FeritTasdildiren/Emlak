@@ -163,6 +163,8 @@ export function useUpdateLeadStatus() {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["customers-pipeline"] });
       queryClient.invalidateQueries({ queryKey: ["customers", variables.id] });
+      // customer-detail sayfası farklı query key kullanıyor
+      queryClient.invalidateQueries({ queryKey: ["customer-detail", variables.id] });
     },
   });
 }

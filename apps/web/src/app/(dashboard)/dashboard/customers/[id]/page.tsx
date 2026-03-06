@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowLeft,
   Phone,
@@ -10,12 +11,16 @@ import {
   User,
   FileText,
   Home,
+  Pencil,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CustomerInfo } from "@/components/customers/customer-info";
 import { CustomerNotes } from "@/components/customers/customer-notes";
 import { MatchList } from "@/components/customers/match-list";
 import { useCustomerDetail } from "@/hooks/use-customer-detail";
+import { useUpdateLeadStatus } from "@/hooks/use-customers";
+import { toast } from "@/components/ui/toast";
 import type { CustomerType, LeadStatus } from "@/types/customer";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +85,109 @@ function getRelativeTime(dateStr: string): string {
     day: "numeric",
     month: "short",
   }).format(date);
+}
+
+// --- Lead Status Dropdown ---
+
+const LEAD_STATUS_OPTIONS: LeadStatus[] = ["cold", "warm", "hot", "converted", "lost"];
+
+function LeadStatusDropdown({
+  customerId,
+  currentStatus,
+}: {
+  customerId: string;
+  currentStatus: LeadStatus;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const updateStatus = useUpdateLeadStatus();
+
+  // Dışarı tıklanınca kapat
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen]);
+
+  const statusConfig = LEAD_STATUS_CONFIG[currentStatus];
+
+  const handleSelect = (status: LeadStatus) => {
+    if (status === currentStatus) {
+      setIsOpen(false);
+      return;
+    }
+    updateStatus.mutate(
+      { id: customerId, status },
+      {
+        onSuccess: () => {
+          toast("Müşteri durumu güncellendi", "success");
+          setIsOpen(false);
+        },
+        onError: () => {
+          toast("Bu durum geçişi yapılamaz", "error");
+          setIsOpen(false);
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={cn(
+          "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition-all hover:ring-2 hover:ring-offset-1",
+          statusConfig.className,
+          updateStatus.isPending && "opacity-60 pointer-events-none"
+        )}
+      >
+        {statusConfig.label}
+        <ChevronDown className="h-3 w-3" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+          {LEAD_STATUS_OPTIONS.map((status) => {
+            const config = LEAD_STATUS_CONFIG[status];
+            const isActive = status === currentStatus;
+            return (
+              <button
+                key={status}
+                onClick={() => handleSelect(status)}
+                className={cn(
+                  "w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors",
+                  isActive
+                    ? "bg-gray-50 font-semibold"
+                    : "hover:bg-gray-50"
+                )}
+              >
+                <span
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full shrink-0",
+                    status === "cold" && "bg-gray-400",
+                    status === "warm" && "bg-yellow-400",
+                    status === "hot" && "bg-red-500",
+                    status === "converted" && "bg-emerald-500",
+                    status === "lost" && "bg-slate-400"
+                  )}
+                />
+                {config.label}
+                {isActive && (
+                  <span className="ml-auto text-blue-500 text-xs">✓</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // --- Sayfa ---
@@ -155,7 +263,7 @@ export default function CustomerDetailPage() {
       </nav>
 
       {/* Müşteri Başlık Kartı */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-white shadow rounded-lg">
         <div className="p-6">
           <div className="sm:flex sm:items-center sm:justify-between">
             {/* Sol: Avatar + Ad + İletişim */}
@@ -200,14 +308,16 @@ export default function CustomerDetailPage() {
               >
                 {typeConfig.label}
               </span>
-              <span
-                className={cn(
-                  "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium",
-                  statusConfig.className
-                )}
-              >
-                {statusConfig.label}
-              </span>
+              <LeadStatusDropdown
+                customerId={id}
+                currentStatus={customer.lead_status}
+              />
+              <Link href={`/dashboard/customers/${id}/edit`}>
+                <Button variant="outline" size="sm" className="ml-2">
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Düzenle
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

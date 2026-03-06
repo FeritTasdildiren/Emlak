@@ -53,7 +53,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           className={cn(selectVariants({ variant: selectVariant, className }))}
           ref={ref}
           disabled={disabled}
-          defaultValue=""
+          {...(!props.value && !props.onChange ? { defaultValue: "" } : {})}
           {...props}
         >
           {placeholder && (

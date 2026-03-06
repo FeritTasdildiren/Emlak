@@ -162,6 +162,10 @@ function PropertiesPageContent() {
         [key]: value,
         page: key === "page" ? (value as number) : 1,
       };
+      // Cascade: şehir değiştiğinde ilçeyi temizle (İstanbul dışı ilçe verisi yok)
+      if (key === "city" && value !== "İstanbul") {
+        newFilters.district = "";
+      }
       updateURL(newFilters);
     },
     [filters, updateURL]
@@ -351,8 +355,8 @@ function PropertyTable({
           </thead>
           <tbody className="divide-y">
             {properties.map((property) => {
-              const status = statusConfig[property.status];
-              const TypeIcon = typeIcons[property.property_type];
+              const status = statusConfig[property.status] ?? { label: property.status, variant: "secondary" as const };
+              const TypeIcon = typeIcons[property.property_type] ?? Home;
               return (
                 <tr
                   key={property.id}
@@ -369,7 +373,7 @@ function PropertyTable({
                           {property.title}
                         </p>
                         <p className="text-xs text-gray-400 sm:hidden">
-                          {typeLabels[property.property_type]} ·{" "}
+                          {typeLabels[property.property_type] ?? property.property_type} ·{" "}
                           {property.district}
                         </p>
                       </div>
@@ -379,7 +383,7 @@ function PropertyTable({
                     <div className="flex items-center gap-2">
                       <TypeIcon className="h-4 w-4 text-gray-400" />
                       <span className="text-gray-600">
-                        {typeLabels[property.property_type]}
+                        {typeLabels[property.property_type] ?? property.property_type}
                       </span>
                     </div>
                   </td>

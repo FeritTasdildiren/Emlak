@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { NumberInput } from "@/components/ui/number-input"
+import { cities, districtsByCity } from "@/lib/location-data"
 
 // ---------------------------------------------------------------------------
 // Schema
@@ -18,7 +19,7 @@ import { NumberInput } from "@/components/ui/number-input"
 const customerFormSchema = z.object({
   full_name: z.string().min(2, "Ad soyad en az 2 karakter olmalıdır"),
   phone: z.string().optional(),
-  email: z.string().email("Geçerli bir e-posta adresi giriniz").optional().or(z.literal("")),
+  email: z.string().optional().or(z.literal("")),
   customer_type: z.enum(["buyer", "seller", "renter", "landlord"] as const),
   source: z.string().optional(),
   budget_min: z.number().optional(),
@@ -236,6 +237,22 @@ export function CustomerForm({
   isLoading = false,
   className,
 }: CustomerFormProps) {
+  const [selectedCity, setSelectedCity] = React.useState("")
+  const [isDistrictListOpen, setIsDistrictListOpen] = React.useState(false)
+
+  // Tüm ilçelerin value→label haritası
+  const allDistrictsMap = React.useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const cityKey of Object.keys(districtsByCity)) {
+      for (const d of districtsByCity[cityKey]) {
+        map[d.value] = d.label
+      }
+    }
+    return map
+  }, [])
+
+  const currentDistricts = selectedCity ? (districtsByCity[selectedCity] ?? []) : []
+
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
@@ -291,7 +308,6 @@ export function CustomerForm({
             />
             <Input
               label="E-posta"
-              type="email"
               placeholder="ornek@email.com"
               errorMessage={errors.email?.message}
               {...register("email")}
@@ -476,15 +492,97 @@ export function CustomerForm({
           <Controller
             name="desired_districts"
             control={control}
-            render={({ field }) => (
-              <TagInput
-                label="Tercih Edilen İlçeler"
-                placeholder="İlçe yazıp Enter'a basın"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.desired_districts?.message}
-              />
-            )}
+            render={({ field }) => {
+              const toggleDistrict = (districtValue: string) => {
+                if (field.value.includes(districtValue)) {
+                  field.onChange(field.value.filter((d: string) => d !== districtValue))
+                } else {
+                  field.onChange([...field.value, districtValue])
+                }
+              }
+
+              const removeDistrict = (districtValue: string) => {
+                field.onChange(field.value.filter((d: string) => d !== districtValue))
+              }
+
+              return (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none text-gray-900">
+                    Tercih Edilen İlçeler
+                  </label>
+
+                  {/* Seçili ilçeler chip listesi */}
+                  {field.value.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {field.value.map((districtVal: string) => (
+                        <span
+                          key={districtVal}
+                          className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"
+                        >
+                          {allDistrictsMap[districtVal] ?? districtVal}
+                          <button
+                            type="button"
+                            onClick={() => removeDistrict(districtVal)}
+                            className="ml-1.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-blue-600 hover:bg-blue-200 hover:text-blue-900 focus:bg-blue-500 focus:text-white focus:outline-none"
+                          >
+                            <span className="sr-only">İlçeyi kaldır</span>
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* İl seçimi */}
+                  <select
+                    value={selectedCity}
+                    onChange={(e) => {
+                      setSelectedCity(e.target.value)
+                      setIsDistrictListOpen(!!e.target.value)
+                    }}
+                    className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="">İl seçin</option>
+                    {cities.map((city) => (
+                      <option key={city.value} value={city.value}>
+                        {city.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* İlçe checkbox listesi */}
+                  {isDistrictListOpen && currentDistricts.length > 0 && (
+                    <div className="max-h-48 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+                        {currentDistricts.map((district) => {
+                          const isChecked = field.value.includes(district.value)
+                          return (
+                            <label
+                              key={district.value}
+                              className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-gray-100"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => toggleDistrict(district.value)}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className={isChecked ? "font-medium text-blue-700" : "text-gray-700"}>
+                                {district.label}
+                              </span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {errors.desired_districts && (
+                    <p className="text-sm text-red-500">{errors.desired_districts.message}</p>
+                  )}
+                </div>
+              )
+            }}
           />
         </FormSection>
       </div>

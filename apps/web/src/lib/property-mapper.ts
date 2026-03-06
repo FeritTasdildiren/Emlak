@@ -33,13 +33,27 @@ export interface ApiProperty {
   updated_at: string;
 }
 
+/** Türkçe karakterli property_type değerlerini ASCII'ye normalize et */
+function normalizePropertyType(raw: string): Property["property_type"] {
+  const map: Record<string, Property["property_type"]> = {
+    daire: "daire",
+    villa: "villa",
+    ofis: "ofis",
+    arsa: "arsa",
+    dukkan: "dukkan",
+    "dükkan": "dukkan",
+    "dükkân": "dukkan",
+  };
+  return map[raw.toLowerCase()] ?? "daire";
+}
+
 /** Backend property verisini frontend Property tipine dönüştür */
 export function mapApiToProperty(item: ApiProperty): Property {
   return {
     id: item.id,
     title: item.title,
     description: item.description,
-    property_type: item.property_type as Property["property_type"],
+    property_type: normalizePropertyType(item.property_type),
     listing_type: (item.listing_type === "sale" ? "satilik" : "kiralik") as Property["listing_type"],
     price: item.price,
     currency: item.currency,

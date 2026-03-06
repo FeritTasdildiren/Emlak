@@ -167,12 +167,47 @@ export function useCustomerDetail(id: string): UseCustomerDetailReturn {
       const response = await api.get<ApiMatchListResponse>(
         `/matches?customer_id=${id}&per_page=50`
       );
-      return response.items
-        .map(mapApiMatch)
-        .sort(
-          (a, b) =>
-            new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime()
-        );
+      
+      const matches = response.items.map(mapApiMatch);
+      const propertyIds = Array.from(new Set(matches.map(m => m.property_id)));
+
+      if (propertyIds.length === 0) return matches;
+
+      // Her mülk için detayları çek
+      interface PropertyResponse {
+        id: string;
+        title?: string;
+        listing_type?: string;
+        price: number;
+        district: string;
+        room_count?: string;
+      }
+
+      const propertyPromises = propertyIds.map(pid =>
+        api.get<PropertyResponse>(`/properties/${pid}`).catch(() => null)
+      );
+
+      const properties = await Promise.all(propertyPromises);
+      const propertyMap: Record<string, Match["property"]> = {};
+      
+      properties.forEach(p => {
+        if (p) {
+          propertyMap[p.id] = {
+            title: p.title || `${p.listing_type === "satilik" ? "Satılık" : "Kiralık"} - ${p.district}`,
+            price: p.price,
+            district: p.district,
+            rooms: p.room_count || "N/A"
+          };
+        }
+      });
+
+      return matches.map(m => ({
+        ...m,
+        property: propertyMap[m.property_id]
+      })).sort(
+        (a, b) =>
+          new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime()
+      );
     },
     enabled: !!id,
     staleTime: 2 * 60 * 1000,

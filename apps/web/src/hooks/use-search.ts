@@ -17,9 +17,13 @@ async function fetchSearch(filters: SearchFilters): Promise<SearchResponse> {
   if (filters.district) params.set("district", filters.district);
   if (filters.property_type !== "all")
     params.set("property_type", filters.property_type);
-  if (filters.listing_type !== "all")
-    params.set("listing_type", filters.listing_type);
-  if (filters.status !== "all") params.set("status", filters.status);
+  if (filters.listing_type !== "all") {
+    // Backend sale/rent bekler, frontend satilik/kiralik kullanır
+    const apiListingType = filters.listing_type === "satilik" ? "sale" : filters.listing_type === "kiralik" ? "rent" : filters.listing_type;
+    params.set("listing_type", apiListingType);
+  }
+  // status "all" ise backend'e "all" gönder (backend skip edecek), göndermezse default "active" olur
+  params.set("status", filters.status);
   if (filters.min_price !== undefined)
     params.set("min_price", String(filters.min_price));
   if (filters.max_price !== undefined)

@@ -31,7 +31,7 @@ const SORT_OPTIONS = [
   { value: "newest", label: "En Yeni" },
   { value: "price_asc", label: "Fiyat (Düşükten Yükseğe)" },
   { value: "price_desc", label: "Fiyat (Yüksekten Düşüğe)" },
-  { value: "area_desc", label: "Alan (m²)" },
+  { value: "area", label: "Alan (m²)" },
 ];
 
 interface SearchFiltersProps {
@@ -91,9 +91,6 @@ export function SearchFilters({
                 value={filters.city}
                 onChange={(e) => {
                   onChange("city", e.target.value);
-                  if (e.target.value !== "İstanbul") {
-                    onChange("district", "");
-                  }
                 }}
                 className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm outline-none transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
               >
@@ -114,7 +111,7 @@ export function SearchFilters({
               <select
                 value={filters.district}
                 onChange={(e) => onChange("district", e.target.value)}
-                disabled={filters.city !== "İstanbul" && filters.city !== ""}
+                disabled={filters.city !== "İstanbul"}
                 className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm outline-none transition-colors focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">Tüm İlçeler</option>

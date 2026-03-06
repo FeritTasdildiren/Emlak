@@ -343,8 +343,7 @@ class CustomerService:
         """
         customer = await CustomerService.get_by_id(db, customer_id, office_id)
 
-        validate_status_transition(customer.lead_status, new_status)
-
+        # Not: validate_status_transition kaldırıldı — tüm geçişler serbest
         old_status = customer.lead_status
         customer.lead_status = new_status
         customer.last_contact_at = datetime.now(UTC)

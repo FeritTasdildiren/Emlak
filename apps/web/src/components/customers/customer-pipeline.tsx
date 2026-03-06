@@ -65,9 +65,43 @@ export function CustomerPipeline({
   activeStatus,
   onStatusClick,
 }: CustomerPipelineProps) {
+  const totalCount = Object.values(counts).reduce((sum, c) => sum + c, 0);
+  const isAllActive = activeStatus === null;
+
   return (
     <div className="overflow-x-auto -mx-4 sm:mx-0 pb-2 sm:pb-0">
       <div className="flex gap-4 px-4 sm:px-0 min-w-max">
+        {/* Tümü kartı */}
+        <button
+          onClick={() => onStatusClick(null)}
+          className={cn(
+            "group flex items-center justify-between w-40 p-3 bg-white border rounded-lg hover:shadow-sm transition-all text-left",
+            isAllActive
+              ? "border-indigo-300 ring-1 ring-indigo-200"
+              : "border-gray-200 hover:border-gray-300"
+          )}
+        >
+          <div>
+            <p
+              className={cn(
+                "text-xs font-medium uppercase tracking-wide mb-1",
+                isAllActive ? "text-indigo-700" : "text-gray-500"
+              )}
+            >
+              Tümü
+            </p>
+            <span className="text-2xl font-bold text-gray-900">
+              {totalCount}
+            </span>
+          </div>
+          <div
+            className={cn(
+              "w-2 h-2 rounded-full",
+              isAllActive ? "bg-indigo-500" : "bg-indigo-300"
+            )}
+          />
+        </button>
+
         {PIPELINE_ITEMS.map((item) => {
           const isActive = activeStatus === item.status;
           return (
