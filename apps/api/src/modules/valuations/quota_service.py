@@ -6,6 +6,9 @@ Her işlem öncesinde kota kontrolü yapılır, sonrasında sayaç artırılır.
 Kota aşılırsa credit_balance üzerinden ekstra kredi kullanılabilir.
 
 Kullanım:
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
     from src.modules.valuations.quota_service import (
         QuotaType, check_quota, increment_quota,
         check_credit, use_credit,
@@ -20,21 +23,22 @@ Kullanım:
             raise HTTPException(429, "Aylık kota aşıldı")
     # ... işlemi yap ...
     await increment_quota(db, office_id, plan, QuotaType.VALUATION)
+
 """
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import calendar
 from datetime import date
 from enum import StrEnum
-from typing import TYPE_CHECKING
-
 import structlog
+import uuid
 from sqlalchemy import select
 
-if TYPE_CHECKING:
-    import uuid
 
+if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.plan_policy import (

@@ -116,11 +116,26 @@ export default function PropertyDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Photo Placeholder */}
-          <Card className="aspect-video relative overflow-hidden flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed">
-            <Info className="h-12 w-12 text-gray-300 mb-2" />
-            <p className="text-gray-400 font-medium">Henüz fotoğraf eklenmemiş</p>
-          </Card>
+          {/* Photos */}
+          {property.photos && property.photos.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {property.photos.map((url: string, index: number) => (
+                <div key={index} className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100">
+                  <img
+                    src={url}
+                    alt={`${property.title} - Fotoğraf ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    loading={index > 2 ? "lazy" : "eager"}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Card className="aspect-video relative overflow-hidden flex flex-col items-center justify-center bg-gray-50 border-2 border-dashed">
+              <Info className="h-12 w-12 text-gray-300 mb-2" />
+              <p className="text-gray-400 font-medium">Henüz fotoğraf eklenmemiş</p>
+            </Card>
+          )}
 
           {/* Description */}
           <Card className="p-6">

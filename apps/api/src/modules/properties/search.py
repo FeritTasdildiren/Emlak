@@ -31,7 +31,8 @@ from src.models.property import Property
 
 def _pg_lower(s: str) -> str:
     """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
-    return s.replace("\u0130", "i").lower()
+    s = s.replace("\u0130", "i").replace("\u0131", "i").lower()
+    return s
 
 # ---------- Sabitler ----------
 
@@ -134,8 +135,7 @@ def _apply_filters(
     max_area: float | None = None,
 ) -> Select:
     """Ortak filtreleri SELECT ifadesine uygula."""
-    if status != "all":
-        stmt = stmt.where(Property.status == status)
+    stmt = stmt.where(Property.status == status)
 
     if city is not None:
         stmt = stmt.where(func.lower(Property.city) == _pg_lower(city))
@@ -363,7 +363,7 @@ def _build_fts_query(
         select(Property)
         .where(
             Property.search_vector.op("@@")(ts_query),
-            *([] if status == "all" else [Property.status == status]),
+            Property.status == status,
         )
         .order_by(
             func.ts_rank_cd(
@@ -584,14 +584,15 @@ async def search_suggestions(
     # turkish_normalize() ile normalize edilmis title uzerinde LIKE
     normalized_title = func.turkish_normalize(Property.title)
 
+    sim_score = func.similarity(normalized_title, normalized_query).label("sim_score")
     stmt = (
-        select(Property.title)
+        select(Property.title, sim_score)
         .where(
             normalized_title.ilike(pattern),
             Property.status == "active",
         )
         .distinct()
-        .order_by(func.similarity(normalized_title, normalized_query).desc())
+        .order_by(sim_score.desc())
         .limit(limit)
     )
 

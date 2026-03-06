@@ -1,7 +1,7 @@
 """
 Emlak Teknoloji Platformu - Object Storage (MinIO/S3)
 
-MinIO S3 client: dosya yukleme, presigned URL, silme.
+MinIO S3 client: dosya yukleme, public URL, silme.
 aiobotocore ile async islemler.
 """
 
@@ -71,38 +71,21 @@ async def upload_file(
     return object_key
 
 
-async def get_presigned_url(
-    object_key: str,
-    expires_in: int = 3600,
-) -> str:
+def get_public_url(object_key: str) -> str:
     """
-    Dosya icin presigned URL olusturur.
+    Nginx proxy uzerinden public URL olusturur.
+
+    Presigned URL yerine sabit public URL kullanilir.
+    Nginx /storage/ location'i MinIO'ya reverse proxy yapar.
 
     Args:
         object_key: S3 object key
-        expires_in: URL gecerlilik suresi (saniye, default 1 saat)
 
     Returns:
-        Presigned URL string
+        Public URL string (orn: https://petqas.com/storage/emlak-media/...)
     """
-    session = get_session()
-
-    async with session.create_client(
-        "s3",
-        endpoint_url=_get_endpoint_url(),
-        aws_access_key_id=settings.MINIO_ACCESS_KEY,
-        aws_secret_access_key=settings.MINIO_SECRET_KEY,
-        region_name="us-east-1",
-    ) as client:
-        url = await client.generate_presigned_url(
-            "get_object",
-            Params={
-                "Bucket": settings.MINIO_BUCKET,
-                "Key": object_key,
-            },
-            ExpiresIn=expires_in,
-        )
-        return url
+    base_url = settings.FRONTEND_URL.rstrip("/")
+    return f"{base_url}/storage/{settings.MINIO_BUCKET}/{object_key}"
 
 
 async def delete_file(object_key: str) -> bool:

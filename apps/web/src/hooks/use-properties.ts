@@ -67,8 +67,7 @@ export function useCreateProperty() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: (data: any) =>
+    mutationFn: (data: Partial<Property> | PropertyFormValues) =>
       api.post<ApiProperty>("/properties", mapPropertyToApi(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });
@@ -87,8 +86,7 @@ export function useUpdateProperty() {
       data,
     }: {
       id: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data: any;
+      data: Partial<Property> | PropertyFormValues;
     }) => api.patch<ApiProperty>(`/properties/${id}`, mapPropertyToApi(data)),
     onSuccess: (updatedApiProperty) => {
       queryClient.invalidateQueries({ queryKey: ["properties"] });

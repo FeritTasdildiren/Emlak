@@ -19,7 +19,7 @@ Referans: TASK-039, TASK-131
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, Request
@@ -41,8 +41,7 @@ from src.modules.messaging.bot.schemas import (
     MiniAppUserResponse,
 )
 
-if TYPE_CHECKING:
-    from src.modules.messaging.bot.auth_bridge import TelegramAuthBridge
+from src.modules.messaging.bot.auth_bridge import TelegramAuthBridge
 
 logger = structlog.get_logger(__name__)
 

@@ -25,10 +25,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
+import uuid
 
-if TYPE_CHECKING:
-    import uuid
 from fastapi import APIRouter, status
+
+from sqlalchemy import text
 
 from src.dependencies import DBSession
 from src.modules.auth.dependencies import ActiveUser
@@ -173,6 +174,11 @@ async def get_public_showcase(
     - Sadece aktif vitrinler dondurulur
     - Ilan detaylari (fotograf, fiyat, konum vb.) dahil edilir
     """
+    # RLS bypass: Public endpoint — JWT yok, office_id bos.
+    # Platform admin role ile tum vitrinlere erisim saglanir.
+    await db.execute(text("SET LOCAL app.current_user_role = 'platform_admin'"))
+    await db.execute(text("SET LOCAL app.current_office_id = '00000000-0000-0000-0000-000000000000'"))
+
     showcase = await ShowcaseService.get_by_slug(db=db, slug=slug)
 
     # Vitrine ait ilanlari getir
@@ -215,6 +221,10 @@ async def increment_showcase_views(
     - Sadece aktif vitrinler icin calisir
     - Guncel goruntulenme sayisini dondurur
     """
+    # RLS bypass: Public endpoint
+    await db.execute(text("SET LOCAL app.current_user_role = 'platform_admin'"))
+    await db.execute(text("SET LOCAL app.current_office_id = '00000000-0000-0000-0000-000000000000'"))
+
     views_count = await ShowcaseService.increment_views(db=db, slug=slug)
     return {"views_count": views_count}
 
@@ -243,6 +253,10 @@ async def get_whatsapp_link(
     - agent_phone bos ise 404 doner
     """
     from fastapi import HTTPException
+
+    # RLS bypass: Public endpoint
+    await db.execute(text("SET LOCAL app.current_user_role = 'platform_admin'"))
+    await db.execute(text("SET LOCAL app.current_office_id = '00000000-0000-0000-0000-000000000000'"))
 
     showcase = await ShowcaseService.get_by_slug(db=db, slug=slug)
 

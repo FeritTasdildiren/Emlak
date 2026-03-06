@@ -31,7 +31,7 @@ const SORT_OPTIONS = [
   { value: "newest", label: "En Yeni" },
   { value: "price_asc", label: "Fiyat (Düşükten Yükseğe)" },
   { value: "price_desc", label: "Fiyat (Yüksekten Düşüğe)" },
-  { value: "area", label: "Alan (m²)" },
+  { value: "area_desc", label: "Alan (m²)" },
 ];
 
 interface SearchFiltersProps {

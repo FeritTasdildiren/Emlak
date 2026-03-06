@@ -417,8 +417,8 @@ alembic current
 alembic history
 ```
 
-**Migration Zinciri (001 → 025):**
-001=initial_schema, 002=rls_policies, 003=app_user_role, 004=payment_table, 005=outbox_inbox, 006=payment_timeline, 007=notifications, 008=telegram_chat_id, 009=area_deprem_price, 010=valuation_scraped, 011=fts_trigger, 012=model_registry, 013=turkish_search, 014=usage_quotas, 015=demographics, 016=customer_match, 017=customer_notes, 018=quota_expand, 019=showcase, 020=performance_indexes, 021=transaction_audit_log, 022=property_form_standardization, 023=customer_demographics, 024=bank_rates_table, 025=appointments
+**Migration Zinciri (001 → 024):**
+001=initial_schema, 002=rls_policies, 003=app_user_role, 004=payment_table, 005=outbox_inbox, 006=payment_timeline, 007=notifications, 008=telegram_chat_id, 009=area_deprem_price, 010=valuation_scraped, 011=fts_trigger, 012=model_registry, 013=turkish_search, 014=usage_quotas, 015=demographics, 016=customer_match, 017=customer_notes, 018=quota_expand, 019=showcase, 020=performance_indexes, 021=transaction_audit_log, 022=property_form_standardization, 023=customer_demographics, 024=bank_rates_table
 
 #### Seed Data
 ```bash
@@ -485,7 +485,7 @@ cd apps/web && pnpm build && pm2 restart petqas-web
 **Swagger UI:** https://petqas.com/api/docs
 **OpenAPI JSON:** https://petqas.com/api/openapi.json
 
-#### Endpoint Ozeti (109 endpoint, 19 modul)
+#### Endpoint Ozeti (103 endpoint, 18 modul)
 
 | Modul | Prefix | Endpoint Sayisi | Auth | Aciklama |
 |-------|--------|----------------|------|----------|
@@ -499,7 +499,6 @@ cd apps/web && pnpm build && pm2 restart petqas-web
 | maps | /api/v1/maps | 3 | JWT | GeoJSON, heatmap, bbox filtre |
 | customers | /api/v1/customers | 9 | JWT | CRM CRUD + notes + timeline + arama |
 | matches | /api/v1/matches | 3 | JWT | Eslestirme run + status guncelleme |
-| appointments | /api/v1/appointments | 6 | JWT | Randevu CRUD + upcoming + list (filtre: status, date_from, date_to) |
 | showcases | /api/v1/showcases | 8 | Karma | Vitrin CRUD (JWT) + public slug + WhatsApp |
 | calculator | /api/v1/calculator | 3 | JWT | Kredi hesaplama + banka oranlar + karsilastirma |
 | notifications | /api/v1/notifications | 5 | JWT | Bildirim CRUD + okundu isaretle |
@@ -560,12 +559,11 @@ Emlak/
 │   │   │   ├── core/             # Exceptions, logging, rate_limit, sentry, telemetry
 │   │   │   ├── middleware/       # request_id, tenant (RLS SET LOCAL)
 │   │   │   ├── models/           # SQLAlchemy entity models (15+ tablo)
-│   │   │   ├── modules/          # 21 is domain modulu
+│   │   │   ├── modules/          # 20 is domain modulu
 │   │   │   │   ├── auth/         # JWT register/login/refresh/me/password
 │   │   │   │   ├── properties/   # Ilan CRUD + search
 │   │   │   │   ├── valuations/   # AI degerleme + PDF + drift
 │   │   │   │   ├── customers/    # CRM CRUD + notes + timeline
-│   │   │   │   ├── appointments/ # Randevu CRUD + upcoming + dashboard
 │   │   │   │   ├── matches/      # Eslestirme algoritma + tetikleme
 │   │   │   │   ├── showcases/    # Portfoy vitrin CRUD + public
 │   │   │   │   ├── calculator/   # Kredi hesaplayici

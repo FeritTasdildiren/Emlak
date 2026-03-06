@@ -9,10 +9,9 @@ from __future__ import annotations
 
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING
-
 import bcrypt
 import structlog
+import uuid
 from jose import JWTError, jwt
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
@@ -21,9 +20,9 @@ from src.config import settings
 from src.core.exceptions import AuthenticationError, ConflictError, ValidationError
 from src.models.user import User
 
-if TYPE_CHECKING:
-    import uuid
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
     from redis.asyncio import Redis
     from sqlalchemy.ext.asyncio import AsyncSession
 

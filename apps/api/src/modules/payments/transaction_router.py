@@ -17,11 +17,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
+import uuid
 from fastapi import APIRouter, Query
 from sqlalchemy import func, select
 
-if TYPE_CHECKING:
-    import uuid
 
 from src.core.exceptions import NotFoundError
 from src.dependencies import DBSession

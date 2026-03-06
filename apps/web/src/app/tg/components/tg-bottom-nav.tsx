@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calculator, Home, Settings, Users } from "lucide-react";
+import { Building2, Calculator, Home, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ================================================================
@@ -21,6 +21,7 @@ interface NavTab {
 
 const tabs: NavTab[] = [
   { icon: Home, label: "Ana Sayfa", href: "/tg" },
+  { icon: Building2, label: "İlanlar", href: "/tg/listings" },
   { icon: Calculator, label: "Değerleme", href: "/tg/valuation" },
   { icon: Users, label: "CRM", href: "/tg/crm" },
   { icon: Settings, label: "Ayarlar", href: "/tg/settings" },
@@ -33,7 +34,7 @@ const tabs: NavTab[] = [
 /**
  * Telegram Mini App alt navigasyon bari.
  *
- * - 4 sekme: Ana Sayfa, Değerleme, CRM, Ayarlar
+ * - 5 sekme: Ana Sayfa, İlanlar, Değerleme, CRM, Ayarlar
  * - Aktif sekme orange-600 ile vurgulanir
  * - usePathname() ile aktif route tespit edilir
  * - Safe area padding (Telegram bottom inset)

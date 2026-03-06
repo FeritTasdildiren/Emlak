@@ -7,12 +7,12 @@ API request/response serialization.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-if TYPE_CHECKING:
-    from datetime import datetime
+from datetime import datetime
+
 
 # ================================================================
 # Response Modelleri

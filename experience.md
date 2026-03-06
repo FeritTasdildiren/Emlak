@@ -2,32 +2,6 @@
 
 ---
 
-## 2026-03-02 - Appointment CRUD Backend (TASK-200)
-### Gorev: Randevu modeli + migration 025 + RLS + 6 endpoint CRUD API + dashboard entegrasyonu
-
-- [KARAR] Hard delete secildi (soft delete yerine) → Randevular takvim verisi, CRM verisi degil. Iptal edilen randevu status="cancelled" olarak kalir, silinen randevu gercekten gereksiz olan. Customer'daki soft-delete pattern (lead_status=lost) burada uygun degil
-- [KARAR] customer_id ve property_id schema'da string olarak alinip service'te UUID'ye donusturuluyor → Frontend genellikle string UUID gonderir, Pydantic UUID validator'u yerine servis katmaninda UUID() cast tercih edildi. Schema'yi frontend-friendly tutmak icin
-- [KARAR] platform_admin_bypass RLS policy eklendi → Showcase migration'da yoktu ama Customer/Property tablolarinda var. Tutarlilik icin her tenant tablosuna eklenmeli. Admin operasyonlari RLS'e takilmamali
-- [PATTERN] GET /upcoming statik path'i parametrik /{id}'den ONCE tanimlamak → FastAPI route matching sirasiyla calisir, /upcoming once tanimlanmazsa "upcoming" string'ini UUID olarak parse etmeye calisir ve 422 verir. Bu pattern /properties/search'te de kullanilmis (search_router ONCE kaydedilmeli notu main.py'de mevcut)
-- [PATTERN] İlişkileri db.refresh(appointment, ["user", "customer", "property"]) ile yuklemek → create/update sonrasi relationship'leri tekrar yuklemezsek _to_response'da None doner. flush() sonrasi iliskiler otomatik yuklenmiyor, explicit refresh gerekli
-- [PATTERN] AppointmentService.get_upcoming() — dashboard entegrasyonu icin service'te ayri metod → Router'da tekrar sorgu yazmak yerine service metodu hem /upcoming endpoint'inde hem dashboard stats'da kullaniliyor. DRY prensibi, tek kaynak
-- [UYARI] ruff TC003/TC002/B008 uyarilari pre-existing kabul edilmis → datetime TYPE_CHECKING disinda tutulmali (Pydantic), AsyncSession TYPE_CHECKING disinda tutulmali (type hint), Query() FastAPI pattern'i. Bu uyarilar tum modulllerde mevcut, noqa ile bastirmak yerine kabul edilmis
-- [UYARI] Import siralama (I001) her yeni modul eklemede dikkat gerektiriyor → main.py'de src.modules.admin.* ile src.modules.appointments.* arasinda alfabetik siralama bozuldu, ruff yakaladi. Her import eklerken ruff check --select I001 calistir
-
----
-
-## 2026-03-02 - Backend Duzeltmeler Sprint FIX-6 (TASK-197)
-### Gorev: GET /properties/{id}, GET /dashboard/stats, Customer demographics fix
-
-- [HATA] Migration ile DB'ye kolon eklendi ama SQLAlchemy model guncellenmedi (property: bathroom_count/furniture_status/building_type/facade, customer: gender/age_range/profession/family_size) → Her migration sonrasi model.py sync kontrolu ZORUNLU. Alembic autogenerate kullanilsa bile model eslesmesi dogrulanmali
-- [KARAR] PostGIS GEOGRAPHY → lat/lon icin ST_Y(ST_GeomFromWKB(location.cast(None))) pattern'i kullanildi → maps/router.py'deki mevcut pattern takip edildi. Tutarlilik icin her zaman ayni pattern kullanilmali
-- [KARAR] Dashboard stats icin conditional COUNT (case/when) ile tek SQL sorgusu → 5 ayri COUNT sorgusu yerine 1 sorgu ile portfolio ve customer istatistikleri alinir. N+1 problemi onlenir
-- [PATTERN] Recent activities 3 tablodan ayri sorgu + Python merge sort → SQL UNION ALL da olabilirdi ama farkli kolonlar (input_data vs full_name vs title) nedeniyle Python merge daha temiz. Limit 10 ile performans sorunu yok
-- [UYARI] _to_response() helper fonksiyonlari model'deki TUM alanlari acik sekilde map'lemeli → from_attributes=True ile otomatik mapping de yapilabilir ama explicit mapping daha guvenli, eksik alan fark edilir
-- [PATTERN] Pydantic datetime import'u TYPE_CHECKING disinda tutulmali → `from __future__ import annotations` aktifken Pydantic runtime'da tip cozumleyemez. TC003 ruff uyarisi ignore edilmeli
-
----
-
 ## 2026-03-01 - Vitrin Seed Genisleme + Ankara/Izmir Degerleme Verisi (TASK-194)
 ### Gorev: 8 yeni vitrin seed + Ankara 25 ilce + Izmir 29 ilce egitim verisi hazirlama
 

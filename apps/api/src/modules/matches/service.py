@@ -15,17 +15,18 @@ Kullanım:
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
-
 import structlog
+import uuid
 from sqlalchemy import func, select
 
 from src.core.exceptions import NotFoundError
 
-if TYPE_CHECKING:
-    import uuid
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.models.match import PropertyCustomerMatch
 
 logger = structlog.get_logger(__name__)

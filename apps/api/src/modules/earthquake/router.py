@@ -31,8 +31,16 @@ logger = structlog.get_logger()
 
 
 def _pg_lower(s: str) -> str:
-    """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
-    return s.replace("\u0130", "i").lower()
+    """Python lower() ile PostgreSQL lower() + immutable_unaccent() uyumsuzlugunu giderir."""
+    import unicodedata
+    # Turkce buyuk I ve kucuk ı ozel donusumleri (NFKD bunlari cozmuyor)
+    s = s.replace("\u0130", "i")  # İ -> i
+    s = s.replace("\u0131", "i")  # ı -> i
+    s = s.lower()
+    # Aksanli karakterleri ASCII'ye donustur (ö->o, ü->u, ş->s, ç->c, ğ->g)
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s
 
 router = APIRouter(
     prefix="/api/v1/earthquake",
@@ -40,6 +48,12 @@ router = APIRouter(
 )
 
 
+@router.get(
+    "/risk",
+    response_model=EarthquakeRiskResponse,
+    summary="Ilce deprem riski (query alias)",
+    description="Query parametresi (?district=...) ile ilce deprem risk bilgilerini dondurur.",
+)
 @router.get(
     "/risk/{district}",
     response_model=EarthquakeRiskResponse,
@@ -51,37 +65,35 @@ router = APIRouter(
     responses={404: {"description": "Ilce deprem verisi bulunamadi"}},
 )
 async def get_earthquake_risk(
-    district: str,
     db: DBSession,
     user: ActiveUser,
+    district: str | None = None,
+    district_query: str | None = Query(None, alias="district"),
 ) -> EarthquakeRiskResponse:
     """
     DepremRisk tablosundan ilce bazli deprem risk verisi getirir.
-
-    risk_level PGA degerine gore hesaplanir:
-    - pga < 0.1: Dusuk
-    - 0.1-0.2: Orta
-    - 0.2-0.4: Yuksek
-    - > 0.4: Cok Yuksek
-
-    Raises:
-        NotFoundError: Ilce deprem verisi bulunamazsa 404.
+    Hem path hem query parametresini destekler.
     """
+    target_district = district or district_query
+    if not target_district:
+        from src.core.exceptions import ValidationError
+        raise ValidationError("Ilce adi belirtilmelidir.")
+
     stmt = select(DepremRisk).where(
-        func.lower(DepremRisk.district) == _pg_lower(district),
+        func.immutable_unaccent(func.lower(DepremRisk.district)) == _pg_lower(target_district),
         DepremRisk.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
-    risk = result.scalar_one_or_none()
+    risk = result.scalars().first()
 
     if risk is None:
-        raise NotFoundError(resource="Deprem riski", resource_id=district)
+        raise NotFoundError(resource="Deprem riski", resource_id=target_district)
 
     pga = float(risk.pga_value) if risk.pga_value else None
 
     logger.info(
         "earthquake_risk_fetched",
-        district=district,
+        district=target_district,
         risk_score=float(risk.risk_score),
         user_id=str(user.id),
     )

@@ -33,7 +33,7 @@ from src.modules.properties.search import (
 logger = structlog.get_logger()
 
 router = APIRouter(
-    prefix="/api/v1/properties",
+    prefix="/api/v1",
     tags=["search"],
 )
 
@@ -87,6 +87,12 @@ class SuggestionResponse(BaseModel):
 # ---------- Endpoints ----------
 
 
+@router.get(
+    "/properties/search",
+    response_model=SearchResponse,
+    summary="Ilan arama (alias)",
+    description="FTS + trigram + filtre bazli hibrit ilan arama. (/properties/search alias'li)",
+)
 @router.get(
     "/search",
     response_model=SearchResponse,
@@ -161,6 +167,11 @@ async def search(
     )
 
 
+@router.get(
+    "/properties/search/suggestions",
+    response_model=SuggestionResponse,
+    summary="Arama onerileri (alias)",
+)
 @router.get(
     "/search/suggestions",
     response_model=SuggestionResponse,

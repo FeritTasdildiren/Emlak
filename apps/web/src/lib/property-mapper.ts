@@ -119,24 +119,50 @@ export function mapPropertyToApi(property: Partial<Property> | PropertyFormValue
   if (typeof apiData.bathroom_count === "string") {
     apiData.bathroom_count = parseInt(apiData.bathroom_count, 10) || null;
   }
-  
+
+  // Remove frontend-only fields that backend doesn't understand
+  const frontendOnlyFields = [
+    "id", "created_at", "updated_at", "area_sqm",
+    "has_balcony", "has_elevator", "has_parking", "is_in_complex",
+    "has_pool", "has_garden", "has_garage", "has_meeting_room",
+    "has_storage", "open_area", "closed_area", "showcase_length",
+    "land_area", "zoning_status", "floor_permission", "taks", "kaks",
+    "road_frontage", "infrastructure", "sub_category", "currency",
+  ];
+  for (const field of frontendOnlyFields) {
+    delete apiData[field];
+  }
+
   return apiData;
 }
 
 /** Frontend Property verisini PropertyFormValues tipine dönüştür (Edit formu için) */
 export function mapPropertyToFormValues(property: Property): Partial<PropertyFormValues> {
   return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...(property as any),
+    title: property.title ?? "",
+    description: property.description ?? undefined,
+    property_type: property.property_type as PropertyFormValues["property_type"],
+    listing_type: property.listing_type as PropertyFormValues["listing_type"],
+    price: property.price,
+    currency: property.currency ?? "TRY",
+    city: property.city ?? "",
+    district: property.district ?? "",
+    neighborhood: property.neighborhood ?? undefined,
+    address: property.address ?? undefined,
+    net_area: property.area_sqm || undefined,
+    gross_area: property.area_sqm || undefined,
     room_count: property.room_count ?? undefined,
     bathroom_count: property.bathroom_count?.toString() ?? undefined,
     floor: property.floor ?? undefined,
     total_floors: property.total_floors ?? undefined,
     building_age: property.building_age ?? undefined,
-    net_area: property.area_sqm,
-    gross_area: property.area_sqm,
-    listing_type: property.listing_type as PropertyFormValues["listing_type"],
-    property_type: property.property_type as PropertyFormValues["property_type"],
+    heating_type: property.heating_type ?? undefined,
+    furniture_status: property.furniture_status ?? undefined,
+    building_type: property.building_type ?? undefined,
+    facade: property.facade ?? undefined,
+    latitude: property.latitude ?? undefined,
+    longitude: property.longitude ?? undefined,
+    photos: property.photos ?? [],
     status: (property.status === "active" ? "active" : "draft") as PropertyFormValues["status"],
   };
 }

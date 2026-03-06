@@ -13,14 +13,16 @@ export default function NewPropertyPage() {
   const router = useRouter()
   const createProperty = useCreateProperty()
 
-  const handleSubmit = async (data: PropertyFormValues) => {
-    try {
-      const res = await createProperty.mutateAsync(data)
-      toast("İlan başarıyla oluşturuldu.")
-      router.push(`/properties/${res.id}`)
-    } catch (error) {
-      toast(error instanceof Error ? error.message : "İlan oluşturulurken bir hata oluştu.")
-    }
+  const handleSubmit = (data: PropertyFormValues) => {
+    createProperty.mutate(data, {
+      onSuccess: (res) => {
+        toast("İlan başarıyla oluşturuldu.")
+        router.push(`/properties/${res.id}`)
+      },
+      onError: (error: Error) => {
+        toast(error.message || "İlan oluşturulurken bir hata oluştu.")
+      },
+    })
   }
 
   return (

@@ -13,7 +13,7 @@ from datetime import date, timedelta
 
 import structlog
 from fastapi import APIRouter, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from src.core.exceptions import NotFoundError, ValidationError
 from src.dependencies import DBSession
@@ -43,13 +43,21 @@ router = APIRouter(
 
 
 def _pg_lower(s: str) -> str:
-    """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir.
+    """Python lower() ile PostgreSQL lower() + immutable_unaccent() uyumsuzlugunu giderir.
 
-    Python'da 'İ'.lower() = 'i\\u0307' (combining dot) uretir,
-    PostgreSQL'de lower('İ') = 'i' (duz) uretir.
-    Bu fonksiyon PostgreSQL davranisini taklit eder.
+    URL'den gelen ASCII ilce adlari (kadikoy) ile DB'deki Turkce ilce adlari
+    (Kadikoy) eslestirilir. Hem buyuk-kucuk harf hem aksanli karakter
+    normalizasyonu yapilir.
     """
-    return s.replace("\u0130", "i").lower()
+    import unicodedata
+    # Turkce buyuk I ve kucuk ı ozel donusumleri (NFKD bunlari cozmuyor)
+    s = s.replace("\u0130", "i")  # İ -> i
+    s = s.replace("\u0131", "i")  # ı -> i
+    s = s.lower()
+    # Aksanli karakterleri ASCII'ye donustur (ö->o, ü->u, ş->s, ç->c, ğ->g)
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s
 
 
 def _calculate_investment_metrics(
@@ -126,16 +134,18 @@ async def compare_areas(
 
     # Tum ilceleri tek sorguda cek
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.district).in_([_pg_lower(d) for d in district_list]),
+        func.immutable_unaccent(func.lower(AreaAnalysis.district)).in_([_pg_lower(d) for d in district_list]),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
     rows = result.scalars().all()
 
     # Bulunan ilceleri dict'e cevir (case-insensitive lookup)
-    found: dict[str, AreaAnalysis] = {
-        _pg_lower(row.district): row for row in rows
-    }
+    found: dict[str, AreaAnalysis] = {}
+    for row in rows:
+        key = _pg_lower(row.district)
+        if key not in found:
+            found[key] = row
 
     # Bulunamayan ilceleri kontrol et
     not_found = [d for d in district_list if _pg_lower(d) not in found]
@@ -206,11 +216,11 @@ async def get_area_price_comparison(
         NotFoundError: Ilce bulunamazsa 404.
     """
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.district) == _pg_lower(district),
+        func.immutable_unaccent(func.lower(AreaAnalysis.district)) == _pg_lower(district),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
-    area = result.scalar_one_or_none()
+    area = result.scalars().first()
 
     if area is None:
         raise NotFoundError(resource="Bolge", resource_id=district)
@@ -271,8 +281,8 @@ async def get_district_price_trends(
     stmt = (
         select(PriceHistory)
         .where(
-            func.lower(PriceHistory.city) == _pg_lower(city),
-            func.lower(PriceHistory.area_name) == _pg_lower(district),
+            func.immutable_unaccent(func.lower(PriceHistory.city)) == _pg_lower(city),
+            func.immutable_unaccent(func.lower(PriceHistory.area_name)) == _pg_lower(district),
             PriceHistory.area_type == "district",
             PriceHistory.date >= start_date,
         )
@@ -347,12 +357,12 @@ async def get_district_demographics(
         NotFoundError: Sehir/ilce bulunamazsa 404.
     """
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.city) == _pg_lower(city),
-        func.lower(AreaAnalysis.district) == _pg_lower(district),
+        func.immutable_unaccent(func.lower(AreaAnalysis.city)) == _pg_lower(city),
+        func.immutable_unaccent(func.lower(AreaAnalysis.district)) == _pg_lower(district),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
-    area = result.scalar_one_or_none()
+    area = result.scalars().first()
 
     if area is None:
         raise NotFoundError(resource="Bolge", resource_id=f"{city}/{district}")
@@ -378,6 +388,16 @@ async def get_district_demographics(
 
 
 @router.get(
+    "/{city}/{district}/detail",
+    response_model=AreaDetailResponse,
+    summary="Ilce detay bilgisi (alias)",
+    description=(
+        "Belirtilen sehir ve ilce icin detayli bolge bilgisi, "
+        "fiyat verileri ve yatirim metriklerini dondurur. (/detail suffix'li alias)"
+    ),
+    responses={404: {"description": "Bolge bulunamadi"}},
+)
+@router.get(
     "/{city}/{district}",
     response_model=AreaDetailResponse,
     summary="Ilce detay bilgisi",
@@ -402,12 +422,12 @@ async def get_area_detail(
         NotFoundError: Sehir/ilce bulunamazsa 404.
     """
     stmt = select(AreaAnalysis).where(
-        func.lower(AreaAnalysis.city) == _pg_lower(city),
-        func.lower(AreaAnalysis.district) == _pg_lower(district),
+        func.immutable_unaccent(func.lower(AreaAnalysis.city)) == _pg_lower(city),
+        func.immutable_unaccent(func.lower(AreaAnalysis.district)) == _pg_lower(district),
         AreaAnalysis.neighborhood.is_(None),
     )
     result = await db.execute(stmt)
-    area = result.scalar_one_or_none()
+    area = result.scalars().first()
 
     if area is None:
         raise NotFoundError(resource="Bolge", resource_id=f"{city}/{district}")

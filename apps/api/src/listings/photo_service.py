@@ -193,32 +193,21 @@ async def _upload_to_minio(
     return object_key
 
 
-async def _get_presigned_url(object_key: str, expires_in: int = 3600) -> str:
+def _get_public_url(object_key: str) -> str:
     """
-    MinIO'dan presigned URL oluşturur.
+    Nginx proxy üzerinden public URL oluşturur.
+
+    Presigned URL yerine sabit public URL kullanılır.
+    Nginx /storage/ location'ı MinIO'ya reverse proxy yapar.
 
     Args:
-        object_key: S3 object key.
-        expires_in: URL geçerlilik süresi (saniye, default 1 saat).
+        object_key: S3 object key (örn: tenant_id/photo_id.jpg).
 
     Returns:
-        Presigned URL string.
+        Public URL string (örn: https://petqas.com/storage/emlak-media/...).
     """
-    session = get_session()
-
-    async with session.create_client(
-        "s3",
-        endpoint_url=_get_endpoint_url(),
-        aws_access_key_id=settings.MINIO_ACCESS_KEY,
-        aws_secret_access_key=settings.MINIO_SECRET_KEY,
-        region_name="us-east-1",
-    ) as client:
-        url = await client.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": PHOTO_BUCKET, "Key": object_key},
-            ExpiresIn=expires_in,
-        )
-        return url
+    base_url = settings.FRONTEND_URL.rstrip("/")
+    return f"{base_url}/storage/{PHOTO_BUCKET}/{object_key}"
 
 
 async def upload_photo(
@@ -234,7 +223,7 @@ async def upload_photo(
         3. Orijinal dosyayı MinIO'ya yükle
         4. Pillow ile thumbnail oluştur (400x300, JPEG 80 quality)
         5. Thumbnail'i MinIO'ya yükle
-        6. Her iki dosya için presigned URL oluştur
+        6. Her iki dosya için public URL oluştur
 
     Args:
         file: FastAPI UploadFile nesnesi.
@@ -273,9 +262,9 @@ async def upload_photo(
     await _upload_to_minio(file_data, original_key, file.content_type or "image/jpeg")
     await _upload_to_minio(thumbnail_data, thumbnail_key, "image/jpeg")
 
-    # 8. Presigned URL'ler oluştur
-    original_url = await _get_presigned_url(original_key)
-    thumbnail_url = await _get_presigned_url(thumbnail_key)
+    # 8. Public URL'ler oluştur
+    original_url = _get_public_url(original_key)
+    thumbnail_url = _get_public_url(thumbnail_key)
 
     logger.info(
         "photo_uploaded",

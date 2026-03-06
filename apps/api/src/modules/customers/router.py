@@ -24,9 +24,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
+import uuid
 
-if TYPE_CHECKING:
-    import uuid
 
 from fastapi import APIRouter, Query, Request, status
 from sqlalchemy import select

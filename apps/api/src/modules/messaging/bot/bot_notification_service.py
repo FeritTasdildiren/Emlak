@@ -21,20 +21,21 @@ Referans: TASK-135
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import structlog
+import uuid
 from sqlalchemy import select
 
 from src.models.user import User
 from src.modules.messaging.schemas import Button, MessageContent
 from src.modules.notifications.service import NotificationService
 
-if TYPE_CHECKING:
-    import uuid
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+if TYPE_CHECKING:
     from src.modules.messaging.adapters.telegram import TelegramAdapter
 
 logger = structlog.get_logger(__name__)

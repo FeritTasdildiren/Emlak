@@ -87,6 +87,24 @@ export default function EditPropertyPage({
         </div>
       </div>
 
+      {/* Mevcut Fotoğraflar */}
+      {property.photos && property.photos.length > 0 && (
+        <div className="max-w-3xl">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Mevcut Fotoğraflar</h3>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+            {property.photos.map((url: string, index: number) => (
+              <div key={index} className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+                <img
+                  src={url}
+                  alt={`Fotoğraf ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Form */}
       <PropertyForm
         isEditing

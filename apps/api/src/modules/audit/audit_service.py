@@ -19,16 +19,17 @@ Kullanim:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import structlog
+import uuid
 
 from src.models.audit_log import AuditAction, AuditLog
 
-if TYPE_CHECKING:
-    import uuid
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
     from fastapi import Request
+if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)

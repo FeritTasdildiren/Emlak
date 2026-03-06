@@ -26,9 +26,8 @@ from __future__ import annotations
 import json
 import re
 import time
-from typing import TYPE_CHECKING
-
 import structlog
+import uuid
 from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import noload
@@ -38,9 +37,10 @@ from src.models.customer import Customer
 from src.models.match import PropertyCustomerMatch
 from src.models.property import Property
 
-if TYPE_CHECKING:
-    import uuid
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
     from celery.result import AsyncResult
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -575,7 +575,6 @@ def trigger_matching_after_property_create(
         str(office_id),
     )
 
-
 def trigger_matching_after_customer_create(
     customer_id: uuid.UUID,
     office_id: uuid.UUID,
@@ -605,3 +604,4 @@ def trigger_matching_after_customer_create(
         str(customer_id),
         str(office_id),
     )
+

@@ -34,7 +34,8 @@ logger = structlog.get_logger()
 
 def _pg_lower(s: str) -> str:
     """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
-    return s.replace("\u0130", "i").lower()
+    s = s.replace("\u0130", "i").replace("\u0131", "i").lower()
+    return s
 
 router = APIRouter(
     prefix="/api/v1/maps",

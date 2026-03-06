@@ -30,7 +30,8 @@ from src.models.property import Property
 
 def _pg_lower(s: str) -> str:
     """Python lower() ile PostgreSQL lower() uyumsuzlugunu giderir."""
-    return s.replace("\u0130", "i").lower()
+    s = s.replace("\u0130", "i").replace("\u0131", "i").lower()
+    return s
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

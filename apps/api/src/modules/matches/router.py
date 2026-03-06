@@ -18,9 +18,10 @@ Endpoint'ler:
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 import structlog
+import uuid
 from fastapi import APIRouter, Query
 
 from src.dependencies import DBSession
@@ -34,8 +35,6 @@ from src.modules.matches.schemas import (
 )
 from src.modules.matches.service import MatchService
 
-if TYPE_CHECKING:
-    import uuid
 
 logger = structlog.get_logger()
 

@@ -18,12 +18,9 @@ Endpoint'ler:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import structlog
+import uuid
 
-if TYPE_CHECKING:
-    import uuid
 
 from datetime import datetime
 

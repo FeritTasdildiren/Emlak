@@ -1824,13 +1824,13 @@ class TelegramBotHandler:
                 import uuid as _uuid
 
                 from src.listings.photo_service import (
-                    _get_presigned_url,
+                    _get_public_url,
                     _upload_to_minio,
                 )
 
                 object_key = f"wizard/{chat_id}/{_uuid.uuid4().hex}.jpg"
                 await _upload_to_minio(photo_bytes, object_key, "image/jpeg")
-                photo_url = await _get_presigned_url(object_key)
+                photo_url = _get_public_url(object_key)
 
                 logger.info(
                     "telegram_bot_wizard_photo_uploaded",
