@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { usePlan } from "@/hooks/use-plan";
+import { useProfile } from "@/hooks/use-profile";
 import { FeatureKey } from "@/lib/plan-features";
 import {
   LayoutDashboard,
@@ -19,6 +20,7 @@ import {
   Settings,
   Coins,
   Lock,
+  LogOut,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -46,6 +48,23 @@ const sidebarItems: SidebarItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { checkAccess, plan } = usePlan();
+  const { user } = useProfile();
+
+  const displayName = user?.full_name || "Kullanıcı";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+  const roleLabel =
+    user?.role === "office_admin"
+      ? "Yönetici"
+      : user?.role === "agent"
+        ? "Danışman"
+        : user?.role === "platform_admin"
+          ? "Platform Admin"
+          : user?.role || "Kullanıcı";
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r bg-white h-screen sticky top-0">
@@ -83,16 +102,27 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-            JD
+            {initials}
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">John Doe</span>
-            <span className="text-xs text-gray-500">Broker</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-medium truncate">{displayName}</span>
+            <span className="text-xs text-gray-500">{roleLabel}</span>
           </div>
         </div>
+        <button
+          onClick={() => {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            window.location.href = "/login";
+          }}
+          className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          Çıkış Yap
+        </button>
       </div>
     </aside>
   );

@@ -35,6 +35,10 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/health/db",
         "/health/pdf",
         "/health/ready",
+        "/api/v1/health",
+        "/api/v1/health/db",
+        "/api/v1/health/pdf",
+        "/api/v1/health/ready",
         "/api/v1/auth/login",
         "/api/v1/auth/register",
         "/api/v1/auth/refresh",
@@ -43,6 +47,7 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/api/v1/listings/staging-styles",
         "/api/v1/listings/tones",
         "/api/v1/listings/portals",
+        "/api/v1/staging/staging-styles",
         "/api/docs",
         "/api/openapi.json",
     }
